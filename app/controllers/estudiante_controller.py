@@ -1,10 +1,12 @@
 from dataclasses import asdict
+from datetime import datetime
 from flask import request, jsonify, Blueprint
 from ..models.usuario import Usuario
 from ..models.estudiante import Estudiante
 from ..services.estudiante_service import EstudianteService
 from ..services.usuario_service import UsuarioService
-from ..services.estudiante_service import EstudianteService
+from ..services.asistencia_service import AsistenciaService
+from ..models.asistencia import Asistencia
 
 estudiante_bp = Blueprint('estudiante', __name__)
 
@@ -74,5 +76,23 @@ def eliminar(id):
     try:
         UsuarioService.eliminar_usuario(id)
         return jsonify({"result":"ok", "message":"Estudiante eliminado"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@estudiante_bp.route('/asistencia/<int:id_estudiante>', methods=['GET'])
+def registrar_asistencia(id_estudiante):
+    try:
+
+        actual = datetime.now()
+        asistencia = Asistencia()
+        asistencia.fecha = actual.date()
+        asistencia.hora = actual.time()
+        asistencia.estado = "PRESENTE"
+        asistencia.estudiante_id = id_estudiante
+
+        AsistenciaService.registrar_asistencia(asistencia)
+
+        return jsonify({"result":"ok", "message":"Asistencia registrada"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

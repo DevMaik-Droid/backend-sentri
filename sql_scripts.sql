@@ -30,24 +30,24 @@ CREATE INDEX idx_estudiantes_matricula ON estudiantes(matricula);
 
 CREATE TABLE docentes(
     id SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES usuarios(id),
     materia TEXT100 NOT NULL,
+    id_usuario INTEGER NOT NULL REFERENCES usuarios(id)
+    
 );
 
 CREATE TABLE rostros(
     id SERIAL PRIMARY KEY,
-    id_estudiante INTEGER NOT NULL REFERENCES estudiantes(id),
+    embedding FLOAT8[],
     image_path TEXT255 NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id_estudiante INTEGER NOT NULL REFERENCES estudiantes(id)
 )
 
 CREATE TABLE asistencias(
     id SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES usuarios(id),
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
     estado D_ESTADO_AS NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id_estudiante INTEGER NOT NULL REFERENCES estudiantes(id)
 );
 
 -- Registrar usuarios

@@ -72,10 +72,10 @@ class EstudianteService:
             return None
         
     @classmethod
-    def actualizar_estudiante(self, estudiante: Estudiante):
+    def actualizar_estudiante(cls, estudiante: Estudiante):
         
         sql = "UPDATE estudiantes SET matricula = %s WHERE usuario_id = %s"
         with CursorPool() as cursor:
             cursor.execute(sql, (estudiante.matricula, estudiante.id))
             return cursor.rowcount
-        
+    
