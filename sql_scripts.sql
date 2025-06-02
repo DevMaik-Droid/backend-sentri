@@ -37,9 +37,9 @@ CREATE TABLE docentes(
 
 CREATE TABLE rostros(
     id SERIAL PRIMARY KEY,
-    embedding FLOAT8[],
+    emmbedding FLOAT8[],
     image_path TEXT255 NOT NULL,
-    id_estudiante INTEGER NOT NULL REFERENCES estudiantes(id)
+    id_estudiante INTEGER NOT NULL REFERENCES estudiantes(id) on delete cascade
 )
 
 CREATE TABLE asistencias(
@@ -62,3 +62,8 @@ INSERT INTO estudiantes (matricula, id_usuario) VALUES ('2025-0001', 2);
 SELECT e.id, e.matricula, u.id, u.nombre, u.apellido, u.cedula, u.email, u.username, u.password_hash, u.rol
 FROM estudiantes e
 JOIN usuarios u ON e.usuario_id = u.id;
+
+SELECT e.id, u.nombre, u.apellido, r.emmbedding
+                FROM estudiantes e
+                JOIN usuarios u ON e.usuario_id = u.id
+                JOIN rostros r ON e.id = r.id_estudiante;

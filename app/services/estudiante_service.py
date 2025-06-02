@@ -64,10 +64,11 @@ class EstudianteService:
     def crear_estudiante(cls, estudiante:Estudiante):
 
         if estudiante.usuario.id is not None:
-            sql = "INSERT INTO estudiantes (matricula, usuario_id) VALUES (%s, %s);"
+            sql = "INSERT INTO estudiantes (matricula, usuario_id) VALUES (%s, %s) RETURNING id;"
             with CursorPool() as cursor:
                 cursor.execute(sql, (estudiante.matricula, estudiante.usuario.id))
-                return cursor.rowcount
+                id = cursor.fetchone()[0]
+                return id
         else:
             return None
         
@@ -79,3 +80,15 @@ class EstudianteService:
             cursor.execute(sql, (estudiante.matricula, estudiante.id))
             return cursor.rowcount
     
+    @classmethod
+    def obtener_estudiantes_rostros(cls):
+        sql = """
+                SELECT e.id, u.nombre, u.apellido, r.emmbedding
+                FROM estudiantes e
+                JOIN usuarios u ON e.usuario_id = u.id
+                JOIN rostros r ON e.id = r.id_estudiante;
+                """
+        with CursorPool() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
