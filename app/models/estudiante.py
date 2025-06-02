@@ -1,8 +1,11 @@
 from .usuario import Usuario
+from dataclasses import dataclass
+from typing import Optional
 
+@dataclass
 class Estudiante:
-    def __init__(self, id=None, matricula=None, usuario: Usuario = None, created_at=None):
-        self.id = id
-        self.matricula = matricula
-        self.usuario = usuario  # Instancia de Usuario
-        self.created_at = created_at
+
+    id: Optional[int] = None
+    matricula: Optional[str] = None
+    usuario: Optional[Usuario] = None
+    

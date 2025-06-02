@@ -1,11 +1,15 @@
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
 class Usuario:
-    def __init__(self, id=None, nombre=None, apellido=None, cedula=None, email=None, username=None, password_hash=None, rol=None, created_at=None):
-        self.id = id
-        self.nombre = nombre
-        self.apellido = apellido
-        self.cedula = cedula
-        self.email = email
-        self.username = username
-        self.password_hash = password_hash
-        self.rol = rol
-        self.created_at = created_at
+
+    id: Optional[int] = None
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    cedula: Optional[str] = None
+    email: Optional[str] = None
+    username: Optional[str] = None
+    password_hash: Optional[str] = None
+    rol: Optional[str] = None
+    created_at: Optional[str] = None
