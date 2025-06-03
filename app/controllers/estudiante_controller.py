@@ -11,8 +11,11 @@ from ..services.usuario_service import UsuarioService
 from ..services.asistencia_service import AsistenciaService
 from ..services.face_service import FaceService
 from ..models.asistencia import Asistencia
+from ..utils.convertir_imagen import convertir_imagen_a_webp
 
 estudiante_bp = Blueprint('estudiante', __name__)
+
+estudiantes = EstudianteService.obtener_estudiantes_rostros()
 
 model = insightface.app.FaceAnalysis(name='buffalo_l')
 model.prepare(ctx_id=0)
@@ -44,10 +47,20 @@ def registrar():
         np_arr = np.frombuffer(img_data, np.uint8)
         img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
+        if img is None:
+                return jsonify({"result": "error", "message": "Imagen no válida o corrupta"}), 400
+        
         #Detectar rostro
         faces = model.get(img)
         if not faces:
             return jsonify({"result":"error", "message":"No se encontraron rostros en la imagen"}), 400
+
+        #Obtener rostro
+        face = faces[0]
+        emmbedding = face.embedding.tolist()
+
+        #guardar imagen
+        image_path = convertir_imagen_a_webp(img_data)
 
         #Registrando usuario
         usuario = Usuario(nombre=data["usuario"]["nombre"],apellido= data["usuario"]["apellido"],cedula= data["usuario"] ["cedula"],email= data["usuario"]["email"],username= data["usuario"]["username"],password_hash= data["usuario"]["password_hash"], rol="ESTUDIANTE");
@@ -55,17 +68,7 @@ def registrar():
         #Registrando estudiante
         estudiante = Estudiante(matricula=data["matricula"], usuario=Usuario(id=id))
         id_estudiante = EstudianteService.crear_estudiante(estudiante)
-
-        #Registra rostro
-        face = faces[0]
-        emmbedding = face.embedding.tolist()
-
-        #guardar imagen
-        file_name = f"{uuid.uuid4().hex}.jpg"
-        image_path = os.path.join(UPLOAD_FOLDER, file_name)
-        with open(image_path, "wb") as f:
-            f.write(img_data)
-
+        #Registrando rostro
         FaceService.registrar_rostro(id_estudiante, image_path, emmbedding);
 
         return jsonify({"result":"ok", "message":"Estudiante registrado"}), 201
@@ -133,13 +136,10 @@ def reconocer_rostro():
         #Registra rostro
         emmbedding = faces[0].embedding
 
-        estudiantes = EstudianteService.obtener_estudiantes_rostros()
-
-
         for estudiante_id, nombre, apellido, emm_guardado in estudiantes:
             dist = cosine(emmbedding, emm_guardado)
             if dist < umbral:
-                return jsonify({"result":"ok", "message":"Estudiante reconocido", "data": {"estudiante": {"id": estudiante_id, "nombre": nombre, "apellido": apellido}}}), 200
+                return jsonify({"result":"ok", "message":"Estudiante reconocido","confianza": 1-dist, "estudiante": {"id": estudiante_id, "nombre": nombre, "apellido": apellido}}), 200
 
 
         return jsonify({"result":"error", "message":"Estudiante no reconocido"}), 400
