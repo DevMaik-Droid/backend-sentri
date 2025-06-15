@@ -42,7 +42,16 @@ async def registrar(request : EstudianteCreate):
         return JSONResponse(status_code=200,content={"result":"ok", "message":"Estudiante registrado"})
     else:
         return JSONResponse(status_code=400,content={"result":"error", "message":"Estudiante no registrado"})
-    _
+
+@router.post('/registrar/varios')
+async def registrar_varios(estudiantes : list[EstudianteCreate]):
+
+    if (await EstudianteService.crear_estudiantes(estudiantes)):
+
+        return JSONResponse(status_code=200,content={"result":"ok", "message":"Estudiantes registrados"})
+    else:
+        return JSONResponse(status_code=400,content={"result":"error", "message":"Estudiantes no registrados"})
+
 
 # @router.post('/registrar')
 # async def registrar(request : EstudianteCreate):

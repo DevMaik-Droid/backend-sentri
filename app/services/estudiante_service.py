@@ -21,6 +21,12 @@ class EstudianteService:
             
         return False
     
+    @classmethod
+    async def crear_estudiantes(cls, est : list[EstudianteCreate]):
+        for estudiante in est:
+            await cls.crear_estudiante(estudiante)
+        return True
+    
     # @classmethod
     # def obtener_estudiante_id(cls, id):
     #     sql = "SELECT * FROM estudiantes WHERE id = %s"
