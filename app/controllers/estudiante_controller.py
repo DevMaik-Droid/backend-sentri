@@ -10,15 +10,12 @@ from ..database.conexion import Conexion
 from ..models.estudiante import EstudianteCreate
 from ..models.usuario import Usuario
 
-from ..services.estudiante_service import EstudianteService, Estudiante
+from ..services.estudiante_service import EstudianteService
 from ..services.usuario_service import UsuarioService
 from ..services.face_service import FaceService
 from ..utils.convertir_imagen import convertir_imagen_a_webp
 
 router = APIRouter()
-
-#estudiantes = EstudianteService.obtener_estudiantes_rostros()
-
 
 model = insightface.app.FaceAnalysis(name='buffalo_l')
 model.prepare(ctx_id=0)
@@ -35,53 +32,63 @@ def listar():
         return {"result":"ok", "message":"Estudiantes listados","data": json_estudiantes}
     else:
         return {"result":"error", "message":"No se encontraron estudiantes"}
-    
+
 
 @router.post('/registrar')
 async def registrar(request : EstudianteCreate):
 
-    try:
-        #Registrando rostro
-        imagen_b64 = request.estudiante.imagen
+    if (await EstudianteService.crear_estudiante(request)):
 
-        # Decodificar imagen base64
-        img_data = base64.b64decode(imagen_b64.split(",")[1])
-        np_arr = np.frombuffer(img_data, np.uint8)
-        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        return JSONResponse(status_code=200,content={"result":"ok", "message":"Estudiante registrado"})
+    else:
+        return JSONResponse(status_code=400,content={"result":"error", "message":"Estudiante no registrado"})
+    _
 
-        if img is None:
-                return JSONResponse(status_code=400,content={"result": "error", "message": "Imagen no válida o corrupta"})
+# @router.post('/registrar')
+# async def registrar(request : EstudianteCreate):
+
+#     try:
+#         #Registrando rostro
+#         imagen_b64 = request.estudiante.imagen
+
+#         # Decodificar imagen base64
+#         img_data = base64.b64decode(imagen_b64.split(",")[1])
+#         np_arr = np.frombuffer(img_data, np.uint8)
+#         img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+#         if img is None:
+#                 return JSONResponse(status_code=400,content={"result": "error", "message": "Imagen no válida o corrupta"})
         
-        #Detectar rostro
-        faces = model.get(img)
-        if not faces:
-            return JSONResponse(status_code=400,content={"result":"error", "message":"No se encontraron rostros en la imagen"})
+#         #Detectar rostro
+#         faces = model.get(img)
+#         if not faces:
+#             return JSONResponse(status_code=400,content={"result":"error", "message":"No se encontraron rostros en la imagen"})
 
-        #Obtener rostro
-        face = faces[0]
-        emmbedding = face.embedding.tolist()
+#         #Obtener rostro
+#         face = faces[0]
+#         emmbedding = face.embedding.tolist()
 
-        #guardar imagen
-        image_path = convertir_imagen_a_webp(img_data)
+#         #guardar imagen
+#         image_path = convertir_imagen_a_webp(img_data)
 
-        async with Conexion() as conn:
-            async with conn.transaction():
-                #Registrando usuario
-                usuario : Usuario = request.usuario
-                id_usuario = await UsuarioService.crear_usuario(usuario, conn)
+#         async with Conexion() as conn:
+#             async with conn.transaction():
+#                 #Registrando usuario
+#                 usuario : Usuario = request.usuario
+#                 id_usuario = await UsuarioService.crear_usuario(usuario, conn)
 
-                #Registrando estudiante
-                estudiante = Estudiante(matricula=request.estudiante.matricula,id_usuario = id_usuario)
-                await EstudianteService.crear_estudiante(estudiante, conn)
+#                 #Registrando estudiante
+#                 estudiante = Estudiante(matricula=request.estudiante.matricula,id_usuario = id_usuario)
+#                 await EstudianteService.crear_estudiante(estudiante, conn)
 
-                #Registrando rostro
-                await FaceService.registrar_rostro(image_path, emmbedding,id_usuario, conn);
+#                 #Registrando rostro
+#                 await FaceService.registrar_rostro(image_path, emmbedding,id_usuario, conn);
 
-        return JSONResponse(status_code=201,content={"result":"ok", "message":"Estudiante registrado"})
-    except KeyError as e:
-        return JSONResponse(status_code=400,content={"error": f"Falta campo requerido: {str(e)}"})
-    except Exception as e:
-        return JSONResponse(status_code=500,content={"error": str(e)})
+#         return JSONResponse(status_code=201,content={"result":"ok", "message":"Estudiante registrado"})
+#     except KeyError as e:
+#         return JSONResponse(status_code=400,content={"error": f"Falta campo requerido: {str(e)}"})
+#     except Exception as e:
+#         return JSONResponse(status_code=500,content={"error": str(e)})
 
 
 # @estudiante_bp.route('/actualizar/<int:id>', methods=['PUT'])

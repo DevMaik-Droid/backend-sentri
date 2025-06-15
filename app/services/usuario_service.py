@@ -5,8 +5,8 @@ class UsuarioService:
 
     @classmethod
     async def crear_usuario(cls, usuario:Usuario, conn : Connection):
-        sql = "INSERT INTO usuarios (nombre, apellido, cedula, email, username, password_hash, rol) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;"
-        id = await conn.fetchval(sql, usuario.nombre, usuario.apellido, usuario.cedula, usuario.email, usuario.username, usuario.password_hash, usuario.rol)
+        sql = "INSERT INTO usuarios (nombre, apellido,fecha_nacimiento, cedula, genero, direccion, telefono, email, password_hash, rol_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
+        id = await conn.fetchval(sql, usuario.nombre, usuario.apellido, usuario.fecha_nacimiento, usuario.cedula, usuario.genero, usuario.direccion, usuario.telefono, usuario.email, usuario.password_hash, usuario.rol_id)
         return id
 
     

@@ -27,11 +27,11 @@ CREATE TABLE usuarios (
     nombre D_TEXT50 NOT NULL,
     apellido D_TEXT50 NOT NULL,
     fecha_nacimiento DATE NOT NULL,
+    cedula D_TEXT20 UNIQUE NOT NULL,
     genero D_GENERO NOT NULL,
     direccion D_TEXT100,
     telefono D_TEXT20,
     email D_TEXT100 UNIQUE NOT NULL,
-    username D_TEXT20 UNIQUE NOT NULL,
     password_hash D_TEXT NOT NULL,
     foto_perfil D_TEXT,
     activo BOOLEAN DEFAULT TRUE,
@@ -50,6 +50,7 @@ CREATE TABLE niveles(
 CREATE TABLE estudiantes(
     id SERIAL PRIMARY KEY,
     codigo D_TEXT20 UNIQUE NOT NULL,
+    nivel_id INTEGER REFERENCES niveles(id),
     usuario_id INTEGER UNIQUE REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
@@ -98,7 +99,8 @@ CREATE TABLE cursos (
 CREATE TABLE materias (
     id SERIAL PRIMARY KEY,
     nombre D_TEXT50 NOT NULL,
-    descripcion D_TEXT
+    descripcion D_TEXT,
+    nivel_id INTEGER REFERENCES niveles(id)
 );
 
 -- ========== MATERIAS - CURSOS ==========

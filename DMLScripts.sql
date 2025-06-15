@@ -1,9 +1,9 @@
 -- Insertar semestres de la carrera Ingenieria de sistemas
 INSERT INTO niveles (nombre, descripcion) 
 VALUES 
-    ('Primer Semestre', 'Introduccion a la Programacion, calculo I, algebra I, etc'),
-    ('Segundo Semestre', 'Programacion I, calulo II, algebra II, etc'),
-    ('Tercer Semestre', 'Programacion II, calculo III, Estadiscas, etc');
+    ('Primer Semestre', 'Se lleva una introduccion a las materias basicas'),
+    ('Segundo Semestre', 'Se busca desarrollar las habilidades basicas de programacion'),
+    ('Tercer Semestre', 'Los estudiantes tienen que tener los conocimientos intermedios de programacion');
 
 
 
@@ -25,3 +25,7 @@ VALUES
 ('LAB-REDES', 'Laboratorio de redes', 40, 'Torre A');
 
 ALTER TABLE cursos DROP COLUMN nivel_id;
+
+SELECT *
+FROM estudiantes e 
+INNER JOIN usuarios u ON e.usuario_id = u.id;
