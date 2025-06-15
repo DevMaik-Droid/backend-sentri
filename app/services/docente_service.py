@@ -1,5 +1,5 @@
 from ..models.usuario import Usuario
-from ..database.cursor_pool import CursorPool
+from ..database.conexion import CursorPool
 from ..models.docente import Docente
 
 class DocenteService:

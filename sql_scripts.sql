@@ -19,14 +19,14 @@ CREATE TABLE usuarios(
     rol D_ROL NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_usuarios_cedula ON usuarios(cedula);
 
 CREATE TABLE estudiantes(
     id SERIAL PRIMARY KEY,
     matricula TEXT100 UNIQUE NOT NULL,
-    usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE
+    id_usuario INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE
 );
-CREATE INDEX idx_estudiantes_matricula ON estudiantes(matricula);
+
+ALTER TABLE estudiantes RENAME COLUMN usuario_id TO id_usuario;
 
 CREATE TABLE docentes(
     id SERIAL PRIMARY KEY,
@@ -39,7 +39,7 @@ CREATE TABLE rostros(
     id SERIAL PRIMARY KEY,
     emmbedding FLOAT8[],
     image_path TEXT255 NOT NULL,
-    id_estudiante INTEGER NOT NULL REFERENCES estudiantes(id) on delete cascade
+    id_usuario INTEGER NOT NULL REFERENCES usuarios(id) on delete cascade
 )
 
 CREATE TABLE asistencias(
@@ -49,6 +49,11 @@ CREATE TABLE asistencias(
     estado D_ESTADO_AS NOT NULL,
     id_estudiante INTEGER NOT NULL REFERENCES estudiantes(id)
 );
+
+
+CREATE INDEX idx_estudiantes_matricula ON estudiantes(matricula);
+CREATE INDEX idx_usuarios_cedula ON usuarios(cedula);
+
 
 -- Registrar usuarios
 INSERT INTO usuarios (nombre, apellido,cedula,email,username,password_hash,rol)

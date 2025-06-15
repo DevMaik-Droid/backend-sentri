@@ -1,4 +1,4 @@
-from ..database.cursor_pool import CursorPool
+from ..database.conexion import CursorPool
 from ..models.asistencia import Asistencia
 
 class AsistenciaService:
