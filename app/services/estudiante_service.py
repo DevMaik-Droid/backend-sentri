@@ -1,17 +1,32 @@
 
-from asyncpg import Connection
 from ..models.usuario import Usuario
-from ..models.estudiante import Estudiante
+from ..models.estudiante import EstudianteCreate
+from ..database.conexion import Conexion
+from ..services.usuario_service import UsuarioService
+
+
 class EstudianteService:
     
 
     @classmethod
-    async def crear_estudiante(cls, estudiante:Estudiante, conn : Connection):
-        sql = "INSERT INTO estudiantes (matricula, id_usuario) VALUES ($1, $2);"
-        await conn.execute(sql, estudiante.matricula, estudiante.id_usuario)
-        
+    async def crear_estudiante(cls, est:EstudianteCreate):
 
-
+        sql = "INSERT INTO estudiantes (codigo, nivel_id ,usuario_id) VALUES ($1, $2, $3);"
+        async with Conexion() as conn:
+            async with conn.transaction():
+                #Registrando usuario
+                usuario_id = await UsuarioService.crear_usuario(est.usuario, conn)
+                await conn.execute(sql, est.estudiante.codigo, est.estudiante.nivel_id, usuario_id)
+                return True
+            
+        return False
+    
+    @classmethod
+    async def crear_estudiantes(cls, est : list[EstudianteCreate]):
+        for estudiante in est:
+            await cls.crear_estudiante(estudiante)
+        return True
+    
     # @classmethod
     # def obtener_estudiante_id(cls, id):
     #     sql = "SELECT * FROM estudiantes WHERE id = %s"

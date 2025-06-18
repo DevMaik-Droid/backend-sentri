@@ -31,8 +31,8 @@ def create_app():
     async def root():
         return JSONResponse(content={"message": "Hello World"})
     
-    # app.include_router(estudiante_router, prefix="/estudiante", tags=["estudiante"])
-    # app.include_router(usuario_router, prefix="/usuario", tags=["usuario"])
+    app.include_router(estudiante_router, prefix="/estudiante", tags=["estudiante"])
+    app.include_router(usuario_router, prefix="/usuario", tags=["usuario"])
     app.include_router(general_router, prefix="/general", tags=["general"])
 
 

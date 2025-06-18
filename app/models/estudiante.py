@@ -1,16 +1,14 @@
+from typing import Optional
 from pydantic import BaseModel, Field
-
-from .usuario import UsuarioAPI
-
-class EstudianteAPI(BaseModel):
-    matricula: str = Field(..., min_length=8)
-    imagen: str = Field(..., min_length=8)
+from .usuario import Usuario
 
 class Estudiante(BaseModel):
-    matricula: str
-    id_usuario: int
-
+    id: Optional[int] = None
+    codigo: Optional[str] = Field(None, min_length=8)
+    nivel_id : Optional[int] = None
+    usuario_id: Optional[int] = None
 
 class EstudianteCreate(BaseModel):
-    estudiante: EstudianteAPI
-    usuario: UsuarioAPI
+    usuario: Usuario
+    estudiante: Estudiante
+    
