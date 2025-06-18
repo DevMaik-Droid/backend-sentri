@@ -19,7 +19,7 @@ async def materias():
 
     json_materias = [dict(materia) for materia in materias]
 
-    return JSONResponse(status_code=200,content={"result":"ok", "message":"Materias obtenidas","materias": json_materias})
+    return JSONResponse(status_code=200,content={"result":"ok", "message":"Materias obtenidas","data": json_materias})
 
 
 @router.get('/aulas')

@@ -5,7 +5,15 @@ VALUES
     ('Segundo Semestre', 'Se busca desarrollar las habilidades basicas de programacion'),
     ('Tercer Semestre', 'Los estudiantes tienen que tener los conocimientos intermedios de programacion');
 
-
+INSERT INTO niveles (nombre, descripcion) 
+VALUES
+    ('Cuarto Semestre', 'Se busca desarrollar las habilidades basicas de programacion'),
+    ('Quinto Semestre', 'Los estudiantes tienen que tener los conocimientos intermedios de programacion'),
+    ('Sexto Semestre', 'Se busca afianzar los conocimientos de programacion'),
+    ('Septimo Semestre', 'Se busca afianzar los conocimientos de programacion'),
+    ('Octavo Semestre', 'Los estudiantes tienen que tener los conocimientos avanzados de programacion'),
+    ('Noveno Semestre', 'Se busca afianzar los conocimientos de programacion'),
+    ('Decimo Semestre', 'Los estudiantes tienen que tener los conocimientos avanzados de programacion');
 
 ALTER TABLE materias ADD COLUMN nivel_id INTEGER REFERENCES niveles(id);
 

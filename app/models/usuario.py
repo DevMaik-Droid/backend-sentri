@@ -15,7 +15,7 @@ class Usuario(BaseModel):
     email: Optional[EmailStr] = None
     password_hash: Optional[str] = Field(None, min_length=3)
     foto_perfil: Optional[UploadFile] | Optional[str] = None
-    activo: Optional[bool] = None
+    estado: Optional[str] = None
     rol_id: Optional[int] = Field(None, gt=0)
 
     
