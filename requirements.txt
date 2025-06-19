@@ -8,4 +8,5 @@ insightface
 opencv-python 
 onnxruntime
 
-
+passlib
+email_validator

@@ -46,16 +46,27 @@ async def reconocer_rostro(request : Request):
         return JSONResponse(status_code=500,content={"error": str(e)})
     
 
+@router.post('/registrar')
+async def registrar(request : Usuario):
+    if (await UsuarioService.crear_usuario_admin(request)):
+        return JSONResponse(status_code=200,content={"result":"ok", "message":"Usuario registrado"})
+    else:
+        return JSONResponse(status_code=400,content={"result":"error", "message":"Usuario no registrado"})
+
+
+
 @router.post('/login')
 async def login(request : Request):
     try:
         data = await request.json()
 
         usuario : Usuario = await UsuarioService.authenticate(data.get("username"));
+        print(usuario)
 
         if pwd_context.verify(data.get("password"), usuario.password_hash):
-            
-            return JSONResponse(status_code=200,content={"result":"ok", "message":"Usuario autenticado","data": {"id": usuario.id, "username": usuario.nombre, "rol": usuario.rol_id}})
+            data = {"id": usuario.id, "nombre": usuario.nombre, "apellido": usuario.apellido, "email": usuario.email,"foto_perfil": usuario.foto_perfil, "rol": usuario.rol}
+
+            return JSONResponse(status_code=200,content={"result":"ok", "message":"Usuario autenticado","data": data})
         else:
             return JSONResponse(status_code=400,content={"result":"error", "message":"Credenciales incorrectas"})
 

@@ -13,10 +13,26 @@ class UsuarioService:
         hash_password = pwd_context.hash(usuario.password_hash)
         id = await conn.fetchval(sql, usuario.nombre, usuario.apellido, usuario.fecha_nacimiento, usuario.cedula, usuario.genero, usuario.direccion, usuario.telefono, usuario.email, hash_password, usuario.rol_id)
         return id
+    
+    @classmethod
+    async def crear_usuario_admin(cls, usuario:Usuario):
+        async with Conexion() as conn:
+            return await cls.crear_usuario(usuario, conn)
 
     @classmethod
     async def authenticate(cls, username):
-        sql = "SELECT * FROM usuarios WHERE cedula = $1 OR email = $1"
+
+        if '@' in username:
+            tipo_autenticacion = "u.email = $1"
+        else:
+            tipo_autenticacion = "u.cedula = $1"
+
+        sql = f"""
+            SELECT u.id, u.nombre, u.apellido, u.email, u.password_hash, u.foto_perfil, upper(r.nombre) AS rol FROM 
+            usuarios u
+            INNER JOIN roles r ON u.rol_id = r.id
+            WHERE {tipo_autenticacion};
+            """
         async with Conexion() as conn:
             user = await conn.fetchrow(sql, username)
             if user:

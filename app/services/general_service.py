@@ -9,7 +9,7 @@ class GeneralService:
             return await conn.fetch(sql)
 
     @classmethod
-    async def obtener_materias(cls):
+    async def obtener_materias(cls, id_usuario):
         sql = "SELECT * FROM materias;"
         async with Conexion() as conn:
             return await conn.fetch(sql)

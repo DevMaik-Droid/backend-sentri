@@ -1,12 +1,14 @@
+INSERT INTO roles (nombre, descripcion) VALUES 
+('admin', 'Administrador del sistema'),
+('docente', 'Personal docente'),
+('estudiante', 'Estudiantes');
+
 -- Insertar semestres de la carrera Ingenieria de sistemas
 INSERT INTO niveles (nombre, descripcion) 
 VALUES 
     ('Primer Semestre', 'Se lleva una introduccion a las materias basicas'),
     ('Segundo Semestre', 'Se busca desarrollar las habilidades basicas de programacion'),
-    ('Tercer Semestre', 'Los estudiantes tienen que tener los conocimientos intermedios de programacion');
-
-INSERT INTO niveles (nombre, descripcion) 
-VALUES
+    ('Tercer Semestre', 'Los estudiantes tienen que tener los conocimientos intermedios de programacion'),
     ('Cuarto Semestre', 'Se busca desarrollar las habilidades basicas de programacion'),
     ('Quinto Semestre', 'Los estudiantes tienen que tener los conocimientos intermedios de programacion'),
     ('Sexto Semestre', 'Se busca afianzar los conocimientos de programacion'),
@@ -14,8 +16,6 @@ VALUES
     ('Octavo Semestre', 'Los estudiantes tienen que tener los conocimientos avanzados de programacion'),
     ('Noveno Semestre', 'Se busca afianzar los conocimientos de programacion'),
     ('Decimo Semestre', 'Los estudiantes tienen que tener los conocimientos avanzados de programacion');
-
-ALTER TABLE materias ADD COLUMN nivel_id INTEGER REFERENCES niveles(id);
 
 INSERT INTO materias (nombre, descripcion, nivel_id)
 VALUES 
@@ -32,8 +32,26 @@ VALUES
 ('LAB-IA','Laboratorio de inteligencia artificial', 30, 'Torre A'),
 ('LAB-REDES', 'Laboratorio de redes', 40, 'Torre A');
 
-ALTER TABLE cursos DROP COLUMN nivel_id;
+INSERT INTO gestiones_academicas (nombre, tipo, fecha_inicio, fecha_fin, descripcion)
+VALUES 
+('2025-I', 'Semestral', '01/01/2025', '31/07/2025', 'Gestion academica 2025');
+
+
+
+
+
 
 SELECT *
 FROM estudiantes e 
 INNER JOIN usuarios u ON e.usuario_id = u.id;
+
+SELECT * FROM roles;
+
+SELECT u.nombre,u.apellido, u.email, u.password_hash, u.foto_perfil, upper(r.nombre) AS rol FROM 
+usuarios u
+INNER JOIN roles r ON u.rol_id = r.id
+WHERE u.rol_id = 3;
+
+SELECT * FROM usuarios;
+
+UPDATE usuarios SET rol_id = 3 WHERE id = 3;

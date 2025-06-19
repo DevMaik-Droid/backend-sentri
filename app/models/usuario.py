@@ -17,5 +17,6 @@ class Usuario(BaseModel):
     foto_perfil: Optional[UploadFile] | Optional[str] = None
     estado: Optional[str] = None
     rol_id: Optional[int] = Field(None, gt=0)
+    rol: Optional[str] = None
 
     

@@ -36,10 +36,7 @@ def listar():
 
 @router.post('/registrar')
 async def registrar(request : EstudianteCreate):
-
-    print(request)
     if (await EstudianteService.crear_estudiante(request)):
-
         return JSONResponse(status_code=200,content={"result":"ok", "message":"Estudiante registrado"})
     else:
         return JSONResponse(status_code=400,content={"result":"error", "message":"Estudiante no registrado"})

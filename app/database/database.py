@@ -8,8 +8,10 @@ class Database:
 
     @classmethod
     async def inicializar_pool(cls):
-        if cls._pool is None:
-            load_dotenv()
+        try:
+            if cls._pool is None:
+                load_dotenv()
+
             _URL_DATABASE = os.getenv("URL_DATABASE")
             parsed = urlparse(_URL_DATABASE)
 
@@ -23,6 +25,9 @@ class Database:
                 max_size=10
             )
             print("✅ Conexión asyncpg establecida.")
+        except:
+            print("❌ Error al establecer la conexión asyncpg.")
+        
 
     @classmethod
     async def obtener_conexion(cls):
