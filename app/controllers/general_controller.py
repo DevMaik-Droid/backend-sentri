@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from ..services.general_service import GeneralService
 
@@ -29,3 +29,21 @@ async def aulas():
     json_aulas = [dict(aula) for aula in aulas]
 
     return JSONResponse(status_code=200,content={"result":"ok", "message":"Aulas obtenidas","aulas": json_aulas})
+
+
+@router.post('/paralelo/registrar')
+async def registrar(request : Request):
+
+    try:
+        paralelos = await request.json()
+
+        if await service.crear_paralelos(paralelos):
+            return JSONResponse(status_code=200,content={"result":"ok", "message":"Paralelos registrados"})
+        else:
+            return JSONResponse(status_code=400,content={"result":"error", "message":"Paralelos no registrados"})
+    except Exception as e:
+        print(e)
+        return JSONResponse(status_code=500,content={"reult":"error", "message": "error del servidor", "error": str(e)})
+    
+
+    

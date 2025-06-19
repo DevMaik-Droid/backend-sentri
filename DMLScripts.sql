@@ -55,3 +55,18 @@ WHERE u.rol_id = 3;
 SELECT * FROM usuarios;
 
 UPDATE usuarios SET rol_id = 3 WHERE id = 3;
+
+SELECT * FROM materias;
+SELECT * FROM aulas;
+SELECT * FROM gestiones_academicas;
+
+ALTER TABLE paralelos ALTER COLUMN nombre TYPE CHAR(1);
+
+INSERT INTO paralelos (nombre, gestion_id, materia_id, cupos)
+VALUES 
+('A', 1, 1, 30),
+('B', 1, 2, 30),
+('C', 1, 3, 30),
+('D', 1, 4, 30);
+
+SELECT * FROM paralelos;
