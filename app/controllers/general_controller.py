@@ -28,8 +28,15 @@ async def aulas():
 
     json_aulas = [dict(aula) for aula in aulas]
 
-    return JSONResponse(status_code=200,content={"result":"ok", "message":"Aulas obtenidas","aulas": json_aulas})
+    return JSONResponse(status_code=200,content={"result":"ok", "message":"Aulas obtenidas","data": json_aulas})
 
+@router.get('/paralelos')
+async def paralelos():
+    paralelos = await service.obtener_paralelos()
+
+    json_paralelos = [dict(paralelo) for paralelo in paralelos]
+
+    return JSONResponse(status_code=200,content={"result":"ok", "message":"Paralelos obtenidos","data": json_paralelos})
 
 @router.post('/paralelo/registrar')
 async def registrar(request : Request):
@@ -46,4 +53,17 @@ async def registrar(request : Request):
         return JSONResponse(status_code=500,content={"reult":"error", "message": "error del servidor", "error": str(e)})
     
 
+@router.post('/horario/registrar')
+async def registrar(request : Request):
+
+    try:
+        horarios = await request.json()
+        registrado, error = await service.crear_horario(horarios)
+        if registrado:
+            return JSONResponse(status_code=200,content={"result":"ok", "message":"Horarios registrados"})
+        else:
+            return JSONResponse(status_code=400,content={"result":"error", "message":"Horarios no registrados"})
+        
+    except Exception as e:
+        return JSONResponse(status_code=500,content={"result":"error", "message": "error del servidor", "error": error})
     

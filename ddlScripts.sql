@@ -112,8 +112,10 @@ CREATE TABLE horarios (
     hora_fin TIME NOT NULL,
     paralelo_id INTEGER NOT NULL REFERENCES paralelos(id),
     aula_id INTEGER NOT NULL REFERENCES aulas(id),
+    UNIQUE (paralelo_id, dia_semana, hora_inicio, hora_fin),
     CONSTRAINT chk_horarios CHECK (hora_fin > hora_inicio)
 );
+
 
 -- ========== INSCRIPCIONES ==========
 CREATE TABLE inscripciones (

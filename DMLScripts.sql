@@ -70,3 +70,8 @@ VALUES
 ('D', 1, 4, 30);
 
 SELECT * FROM paralelos;
+SELECT * FROM horarios;
+
+SELECT p.id, p.nombre AS paralelo,p.cupos, m.nombre AS materia, m.nivel_id
+FROM paralelos p
+INNER JOIN materias m ON m.id = p.materia_id;
