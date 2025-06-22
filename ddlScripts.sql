@@ -6,7 +6,7 @@ CREATE DOMAIN D_TEXT20 AS VARCHAR(20);
 CREATE DOMAIN D_TEXT AS VARCHAR(255);
 CREATE DOMAIN D_ACTIVO_CURSO AS VARCHAR(20) CHECK (VALUE IN ('PROXIMAMENTE', 'ACTIVO','FINALIZADO', 'CANCELADO'));
 CREATE DOMAIN D_DIA_SEMANA AS VARCHAR(9) CHECK (VALUE IN ('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'));
-CREATE DOMAIN D_ESTADO_ASISTENCIA AS VARCHAR(15) CHECK (VALUE IN ('Presente', 'Ausente', 'Tarde', 'Justificado'));
+CREATE DOMAIN D_ESTADO_ASISTENCIA AS VARCHAR(15) CHECK (VALUE IN ('PRESENTE', 'AUSENTE', 'JUSTIFICADO', 'TARDE'));
 CREATE DOMAIN D_METODO_REGISTRO AS VARCHAR(5) CHECK (VALUE IN ('QR', 'IA', 'Manual'));
 CREATE DOMAIN D_ESTADO AS VARCHAR(10) CHECK (VALUE IN ('ACTIVO', 'INACTIVO','ELIMINADO'));
 
@@ -130,23 +130,23 @@ CREATE TABLE inscripciones (
 -- ========== ASISTENCIAS GENERALES ==========
 CREATE TABLE asistencias (
     id SERIAL PRIMARY KEY,
-    fecha DATE NOT NULL,
-    hora TIME NOT NULL,
+    fecha DATE DEFAULT CURRENT_DATE,
+    hora TIME DEFAULT CURRENT_TIME,
     metodo_registro D_METODO_REGISTRO DEFAULT 'IA',
-    estado D_ESTADO_ASISTENCIA DEFAULT 'Presente',
-    usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+    estado D_ESTADO_ASISTENCIA DEFAULT 'PRESENTE',
+    usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     UNIQUE (usuario_id, fecha)
 );
 
 -- ========== ASISTENCIAS POR PARALELO ==========
 CREATE TABLE asistencias_paralelo (
     id SERIAL PRIMARY KEY,
-    usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+    usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     paralelo_id INTEGER NOT NULL REFERENCES paralelos(id),
     fecha DATE DEFAULT CURRENT_DATE,
     hora TIME DEFAULT CURRENT_TIME,
     metodo_registro D_METODO_REGISTRO DEFAULT 'QR',
-    estado D_ESTADO_ASISTENCIA DEFAULT 'Presente',
+    estado D_ESTADO_ASISTENCIA DEFAULT 'PRESENTE',
     UNIQUE (usuario_id, paralelo_id, fecha)
 );
 
@@ -166,11 +166,13 @@ CREATE TABLE qr_asistencia (
 -- ========== REGISTRO DE ROSTROS ==========
 CREATE TABLE rostros (
     id SERIAL PRIMARY KEY,
-    usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+    usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     emmbedding FLOAT8[] NOT NULL,
     image_path TEXT NOT NULL,
     UNIQUE (usuario_id)
 );
+
+DROP TABLE rostros;
 
 -- ========== LOG DE ACCESOS =========
 CREATE TABLE log_accesos (

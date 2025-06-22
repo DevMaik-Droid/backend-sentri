@@ -19,4 +19,11 @@ class Usuario(BaseModel):
     rol_id: Optional[int] = Field(None, gt=0)
     rol: Optional[str] = None
 
-    
+
+
+class RostroUser(BaseModel):
+    id: Optional[int] = Field(None, gt=0)
+    usuario_id: int = Field(..., gt=0)
+    foto : UploadFile = Field(..., min_length=3)
+    emmbedding: Optional[str] = Field(None, min_length=3)
+    image_path: Optional[str] = None

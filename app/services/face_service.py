@@ -1,12 +1,13 @@
 from ..database.conexion import Conexion
-from asyncpg import Connection
+from ..models.usuario import RostroUser
 class FaceService:
 
 
     @classmethod
-    async def registrar_rostro(cls, image_path, emmbedding, id_usuario, conn : Connection):
-        sql = "INSERT INTO rostros (emmbedding, image_path, id_usuario) VALUES ($1, $2, $3);"
-        await conn.execute(sql, emmbedding, image_path, id_usuario)
+    async def registrar_rostro(cls, rostro : RostroUser):
+        sql = "INSERT INTO rostros (usuario_id,emmbedding, image_path) VALUES ($1, $2, $3);"
+        async with Conexion() as conn:
+            await conn.execute(sql,rostro.usuario_id, rostro.emmbedding, rostro.image_path)
 
 
     @classmethod

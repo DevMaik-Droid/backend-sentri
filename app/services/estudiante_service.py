@@ -1,12 +1,19 @@
 
+from datetime import datetime
 from ..models.usuario import Usuario
-from ..models.estudiante import EstudianteCreate
+from ..models.estudiante import Estudiante, EstudianteCreate
 from ..database.conexion import Conexion
 from ..services.usuario_service import UsuarioService
 
 
 class EstudianteService:
     
+
+    @classmethod
+    async def crear_estudiantes(cls, est : list[EstudianteCreate]):
+        for estudiante in est:
+            await cls.crear_estudiante(estudiante)
+        return True
 
     @classmethod
     async def crear_estudiante(cls, est:EstudianteCreate):
@@ -22,86 +29,97 @@ class EstudianteService:
         return False
     
     @classmethod
-    async def crear_estudiantes(cls, est : list[EstudianteCreate]):
-        for estudiante in est:
-            await cls.crear_estudiante(estudiante)
-        return True
+    async def actualizar_estudiante(cls, est:EstudianteCreate):
+        sql = "UPDATE estudiantes SET codigo = $1, nivel_id = $2 WHERE id = $3;"
+        async with Conexion() as conn:
+            async with conn.transaction():
+                
+                #Actualizando usuario
+                est.usuario.id = est.estudiante.usuario_id
+                await UsuarioService.actualizar_usuario_(est.usuario, conn)
+
+                await conn.execute(sql, est.estudiante.codigo, est.estudiante.nivel_id, est.estudiante.id)
+                
+                return True
+            
+        return False
     
-    # @classmethod
-    # def obtener_estudiante_id(cls, id):
-    #     sql = "SELECT * FROM estudiantes WHERE id = %s"
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql, (id,))
-    #         estudiante = cursor.fetchone()
-    #         return estudiante
-    
-    # @classmethod
-    # def buscar_por_matricula(cls, matricula):
-    #     sql = "SELECT * FROM estudiantes WHERE matricula = %s"
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql, (matricula,))
-    #         estudiante = cursor.fetchone()
-    #         return estudiante
-    
-    # @classmethod
-    # def obtener_estudiantes_all(cls):
-    #     sql = """
-    #             SELECT e.id, e.matricula, u.id, u.nombre, u.apellido, u.cedula, u.email, u.username, u.password_hash, u.rol, u.created_at
-    #             FROM estudiantes e
-    #             JOIN usuarios u ON e.usuario_id = u.id;
-    #         """
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql)
-    #         result = cursor.fetchall()
-    #         estudiantes = []
-
-    #         for fila in result:
-    #             estudiante= Estudiante(
-    #                 id=fila[0],
-    #                 matricula=fila[1],
-    #                 usuario=Usuario(id=fila[2],nombre=fila[3],apellido=fila[4],cedula=fila[5],email=fila[6],username=fila[7],password_hash=fila[8],rol=fila[9], created_at=fila[10])
-    #             )
-    #             estudiantes.append(estudiante)
-
-    #         return estudiantes
-
-    # @classmethod
-    # def obtener_estudiantes(cls):
-    #     sql = "SELECT * FROM estudiantes;"
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql)
-    #         result = cursor.fetchall()
-    #         print(result)
-    #         estudiantes = []
-
-    #         for fila in result:
-    #             estudiante= Estudiante(
-    #                 id=fila[0],
-    #                 matricula=fila[1],
-    #                 usuario=Usuario(id=fila[2])
-    #             )
-    #             estudiantes.append(estudiante)
-
-    #         return estudiantes
-
+    @classmethod
+    async def obtener_estudiante(cls, id) -> EstudianteCreate | None:
+        sql = """
+        SELECT e.id, e.codigo, e.nivel_id,e.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+        FROM estudiantes e
+        INNER JOIN usuarios u ON u.id = e.usuario_id
+        WHERE e.id = $1;
+                """
+        async with Conexion() as conn:
+            fila = await conn.fetchrow(sql, id)
+            if fila:
+                estudiante = Estudiante(
+                    id=fila["id"],
+                    codigo=fila["codigo"],
+                    nivel_id=fila["nivel_id"],
+                    usuario_id=fila["usuario_id"]
+                )
+                usuario = Usuario(
+                    nombre=fila["nombre"],
+                    apellido=fila["apellido"],
+                    fecha_nacimiento=fila["fecha_nacimiento"],
+                    cedula=fila["cedula"],
+                    genero=fila["genero"],
+                    direccion=fila["direccion"],
+                    telefono=fila["telefono"],
+                    email=fila["email"],
+                    foto_perfil=fila["foto_perfil"],
+                    fecha_creacion=fila["fecha_creacion"]
+                )
+                return EstudianteCreate(estudiante=estudiante, usuario=usuario)
+            
+            return None
         
-    # @classmethod
-    # def actualizar_estudiante(cls, estudiante: Estudiante):
-        
-    #     sql = "UPDATE estudiantes SET matricula = %s WHERE usuario_id = %s"
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql, (estudiante.matricula, estudiante.id))
-    #         return cursor.rowcount
+    @classmethod
+    async def eliminar_estudiante(cls, id_usuario):
+        sql = "DELETE FROM usuarios WHERE id = $1"
+        async with Conexion() as conn:
+            return await conn.execute(sql, id_usuario)
     
-    # @classmethod
-    # def obtener_estudiantes_rostros(cls):
-    #     sql = """
-    #             SELECT e.id, u.nombre, u.apellido, r.emmbedding
-    #             FROM estudiantes e
-    #             JOIN usuarios u ON e.usuario_id = u.id
-    #             JOIN rostros r ON e.id = r.id_estudiante;
-    #             """
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql)
-    #         result = cursor.fetchall()
-    #         return result
+    
+    @classmethod
+    async def obtener_estudiantes_all(cls):
+        sql = """
+        SELECT e.id, e.codigo, e.nivel_id, e.usuario_id,
+            u.nombre, u.apellido, u.fecha_nacimiento, u.cedula, u.genero,
+            u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+        FROM estudiantes e
+        INNER JOIN usuarios u ON u.id = e.usuario_id;
+        """
+        lista_estudiantes: list[EstudianteCreate] = []
+
+        async with Conexion() as conn:
+            res = await conn.fetch(sql)
+            print("resilta", res)
+            for fila in res:
+                estudiante = Estudiante(
+                    id=fila["id"],
+                    codigo=fila["codigo"],
+                    nivel_id=fila["nivel_id"],
+                    usuario_id=fila["usuario_id"]
+                )
+                usuario = Usuario(
+                    nombre=fila["nombre"],
+                    apellido=fila["apellido"],
+                    fecha_nacimiento=fila["fecha_nacimiento"].date() if isinstance(fila["fecha_nacimiento"], datetime) else fila["fecha_nacimiento"],
+                    cedula=fila["cedula"],
+                    genero=fila["genero"],
+                    direccion=fila["direccion"],
+                    telefono=fila["telefono"],
+                    email=fila["email"],
+                    foto_perfil=fila["foto_perfil"],
+                    fecha_creacion=fila["fecha_creacion"]
+                )
+                lista_estudiantes.append(EstudianteCreate(estudiante=estudiante, usuario=usuario))
+        return lista_estudiantes
+
+            
+            
+            

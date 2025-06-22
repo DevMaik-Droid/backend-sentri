@@ -75,3 +75,12 @@ SELECT * FROM horarios;
 SELECT p.id, p.nombre AS paralelo,p.cupos, m.nombre AS materia, m.nivel_id
 FROM paralelos p
 INNER JOIN materias m ON m.id = p.materia_id;
+
+
+SELECT u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion from usuarios u;
+
+SELECT * FROM estudiantes;
+
+SELECT e.id, e.codigo, e.nivel_id,e.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+        FROM estudiantes e
+        INNER JOIN usuarios u ON u.id = e.usuario_id;

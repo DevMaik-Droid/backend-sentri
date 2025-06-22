@@ -47,27 +47,23 @@ class UsuarioService:
     #         usuarios = cursor.fetchall()
     #         return usuarios
         
-    # @classmethod
-    # def actualizar_usuario(self, usuario: Usuario):
-    #     sql = "UPDATE usuarios SET nombre = %s, apellido = %s, cedula = %s, email = %s, username = %s, password_hash = %s, rol = %s WHERE id = %s;"
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql, (usuario.nombre, usuario.apellido, usuario.cedula, usuario.email, usuario.username, usuario.password_hash, usuario.rol, usuario.id))
-    #         return cursor.rowcount
+    @classmethod
+    async def actualizar_usuario_all(self, usuario: Usuario, conn : Connection = None):
+        sql = "UPDATE usuarios SET nombre = $1, apellido = $2, fecha_nacimiento = $3, cedula = $4, genero = $5, direccion = $6, telefono = $7, email = $8, password_hash = $9 WHERE id = $10;"
+        if conn is not None:
+            hash_password = pwd_context.hash(usuario.password_hash)
+            await conn.execute(sql, usuario.nombre, usuario.apellido, usuario.fecha_nacimiento, usuario.cedula, usuario.genero, usuario.direccion, usuario.telefono, usuario.email, hash_password, usuario.id)
+        else:
+            async with Conexion() as conn:
+                return await self.actualizar_usuario_all(usuario, conn)
+            
+    @classmethod
+    async def obtener_usuario(cls, id):
+        sql = "SELECT u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion FROM usuarios WHERE id = $1"
+        async with Conexion() as conn:
+            return await conn.fetchrow(sql, id)
 
-    # @classmethod
-    # def eliminar_usuario(self, id):
-    #     sql = "DELETE FROM usuarios WHERE id = %s"
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql, (id,))
-    #         return cursor.rowcount
 
-    # @classmethod
-    # def obtener_usuario(cls, id):
-    #     sql = "SELECT * FROM usuarios WHERE id = %s"
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql, (id,))
-    #         usuario = cursor.fetchone()
-    #         return usuario
 
 
     

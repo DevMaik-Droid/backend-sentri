@@ -1,11 +1,13 @@
-from ..database.conexion import CursorPool
+from ..database.conexion import Conexion
 from ..models.asistencia import Asistencia
 
 class AsistenciaService:
     
     @classmethod
-    def registrar_asistencia(cls, asistencia : Asistencia):
-        sql = "INSERT INTO asistencias (fecha, hora, estado, id_estudiante) VALUES (%s,%s,%s,%s);"
-        with CursorPool() as cursor:
-            cursor.execute(sql, (asistencia.fecha, asistencia.hora, asistencia.estado, asistencia.estudiante_id))
-            return cursor.rowcount
+    async def registrar_asistencia(cls, usuario_id):
+        sql = "INSERT INTO asistencias (usuario_id) VALUES ($1, $2, $3);"
+        async with Conexion() as conn:
+            await conn.execute(sql, (usuario_id))
+            return True
+
+        return False
