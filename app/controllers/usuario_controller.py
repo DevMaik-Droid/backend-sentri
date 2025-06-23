@@ -132,3 +132,11 @@ def registrar_asistencia(usuario_id : int):
 
     except Exception as e:
         return JSONResponse(status_code=500,content={"error": str(e)})
+    
+@router.delete('/eliminar/{id}')
+async def eliminar(id : int):
+
+    if (await UsuarioService.eliminar_usuario(id)):
+        return JSONResponse(status_code=200,content={"result":"ok", "message":"Usuario eliminado"})
+    else:
+        return JSONResponse(status_code=400,content={"result":"error", "message":"Usuario no eliminado"})

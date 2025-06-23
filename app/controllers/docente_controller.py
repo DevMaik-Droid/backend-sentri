@@ -8,11 +8,13 @@ service = DocenteService()
 
 @router.post('/registrar')
 async def registrar(request : DocenteData):
-    if (await service.crear_docente(request)):
-        return JSONResponse(status_code=200,content={"result":"ok", "message":"Docente registrado"})
-    else:
-        return JSONResponse(status_code=400,content={"result":"error", "message":"Docente no registrado"})
-
+    try:
+        if (await service.crear_docente(request)):
+            return JSONResponse(status_code=200,content={"result":"ok", "message":"Docente registrado"})
+        else:
+            return JSONResponse(status_code=400,content={"result":"error", "message":"Docente no registrado"})
+    except Exception as e:
+        return JSONResponse(status_code=500,content={"error": str(e)})
 @router.put('/actualizar')
 async def actualizar(request : DocenteData):
 
@@ -28,11 +30,11 @@ async def obtener(id: int):
         return JSONResponse(status_code=404,content={"result":"error", "message":"Docente no encontrado"})
     else:
         return JSONResponse(status_code=200,content=docente)
+@router.get('/obtener/todos')
+async def obtener_todos():
 
-@router.delete('/eliminar/{id}')
-async def eliminar(id : int):
-
-    if (await service.eliminar_docente(id)):
-        return JSONResponse(status_code=200,content={"result":"ok", "message":"Docente eliminado"})
+    docentes : list[DocenteData] = await service.obtener_docentes_all()
+    if docentes:
+        return {"result":"ok", "message":"Docentes obtenidos","data": docentes}
     else:
-        return JSONResponse(status_code=400,content={"result":"error", "message":"Docente no eliminado"})
+        return {"result":"error", "message":"Docentes no encontrados"}

@@ -63,6 +63,12 @@ class UsuarioService:
         async with Conexion() as conn:
             return await conn.fetchrow(sql, id)
 
+    @classmethod
+    async def eliminar_usuario(cls, id_usuario):
+        sql = "DELETE FROM usuarios WHERE id = $1"
+        async with Conexion() as conn:
+            return await conn.execute(sql, id_usuario)
+
 
 
 

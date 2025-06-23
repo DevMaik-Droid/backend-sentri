@@ -84,3 +84,8 @@ SELECT * FROM estudiantes;
 SELECT e.id, e.codigo, e.nivel_id,e.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
         FROM estudiantes e
         INNER JOIN usuarios u ON u.id = e.usuario_id;
+    
+SELECT * FROM paralelos;
+
+SELECT * FROM materias;
+

@@ -1,7 +1,7 @@
 
 from datetime import datetime
 from ..models.usuario import Usuario
-from ..models.estudiante import Estudiante, EstudianteCreate
+from ..models.estudiante import Estudiante, EstudianteCreate, Inscripcion
 from ..database.conexion import Conexion
 from ..services.usuario_service import UsuarioService
 
@@ -33,13 +33,10 @@ class EstudianteService:
         sql = "UPDATE estudiantes SET codigo = $1, nivel_id = $2 WHERE id = $3;"
         async with Conexion() as conn:
             async with conn.transaction():
-                
                 #Actualizando usuario
                 est.usuario.id = est.estudiante.usuario_id
                 await UsuarioService.actualizar_usuario_(est.usuario, conn)
-
                 await conn.execute(sql, est.estudiante.codigo, est.estudiante.nivel_id, est.estudiante.id)
-                
                 return True
             
         return False
@@ -75,14 +72,7 @@ class EstudianteService:
                 )
                 return EstudianteCreate(estudiante=estudiante, usuario=usuario)
             
-            return None
-        
-    @classmethod
-    async def eliminar_estudiante(cls, id_usuario):
-        sql = "DELETE FROM usuarios WHERE id = $1"
-        async with Conexion() as conn:
-            return await conn.execute(sql, id_usuario)
-    
+            return None    
     
     @classmethod
     async def obtener_estudiantes_all(cls):
@@ -120,6 +110,14 @@ class EstudianteService:
                 lista_estudiantes.append(EstudianteCreate(estudiante=estudiante, usuario=usuario))
         return lista_estudiantes
 
+    @classmethod
+    async def inscribir_estudiante(cls, inscripcion:Inscripcion):
+        sql = "INSERT INTO inscripciones (estudiante_id, paralelo_id) VALUES ($1, $2);"
+        async with Conexion() as conn:
+            async with conn.transaction():
+                await conn.execute(sql, inscripcion.estudiante_id, inscripcion.paralelo_id)
+                return True
+        return False
             
             
             

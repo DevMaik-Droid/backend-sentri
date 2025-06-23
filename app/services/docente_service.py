@@ -1,79 +1,103 @@
 from ..models.usuario import Usuario
-from ..database.conexion import CursorPool
-from ..models.docente import Docente
+from ..database.conexion import Conexion
+from ..models.docente import DocenteData
+from ..services.usuario_service import UsuarioService
 
 class DocenteService:
 
     @classmethod
-    def obtener_docente_id(cls, id):
-        sql = "SELECT * FROM docentes WHERE id = %s"
-        with CursorPool() as cursor:
-            cursor.execute(sql, (id,))
-            docente = cursor.fetchone()
-            return docente
+    async def crear_docente(cls, data:DocenteData):
+        sql = "INSERT INTO docentes (profesion, especialidad, fecha_contratacion, observaciones, usuario_id) VALUES ($1, $2, $3, $4, $5);"
+        async with Conexion() as conn:
+            async with conn.transaction():
+                #Registrando usuario
+                usuario_id = await UsuarioService.crear_usuario(data.usuario, conn)
+                await conn.execute(sql, data.docente.profesion, data.docente.especialidad, data.docente.fecha_contratacion, data.docente.observaciones, usuario_id)
+                return True
+            
+        return False
 
     @classmethod
-    def buscar_por_materia(cls, materia):
-        sql = "SELECT * FROM docentes WHERE materia = %s"
-        with CursorPool() as cursor:
-            cursor.execute(sql, (materia,))
-            docente = cursor.fetchone()
-            return docente
-
-    @classmethod
-    def obtener_docentes_all(cls):
+    async def obtener_docente(cls, id):
         sql = """
-                SELECT d.id, d.materia, u.id, u.nombre, u.apellido, u.cedula, u.email, u.username, u.password_hash, u.rol, u.created_at
-                FROM docentes d
-                JOIN usuarios u ON d.id_usuario = u.id;
-              """
-        with CursorPool() as cursor:
-            cursor.execute(sql)
-            result = cursor.fetchall()
-            docentes = []
-
-            for fila in result:
-                docente = Docente(
-                    id=fila[0],
-                    materia=fila[1],
-                    usuario=Usuario(id=fila[2], nombre=fila[3], apellido=fila[4], cedula=fila[5], email=fila[6], username=fila[7], password_hash=fila[8], rol=fila[9], created_at=fila[10])
+        SELECT d.id, d.profesion, d.especialidad, d.fecha_contratacion, d.observaciones,d.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+        FROM docentes d
+        INNER JOIN usuarios u ON u.id = d.usuario_id
+        WHERE d.id = $1;
+                """
+        async with Conexion() as conn:
+            fila = await conn.fetchrow(sql, id)
+            if fila:
+                docente = DocenteData(
+                    id=fila["id"],
+                    profesion=fila["profesion"],
+                    especialidad=fila["especialidad"],
+                    fecha_contratacion=fila["fecha_contratacion"],
+                    observaciones=fila["observaciones"],
+                    usuario_id=fila["usuario_id"]
                 )
-                docentes.append(docente)
-
-            return docentes
-
-    @classmethod
-    def obtener_docentes(cls):
-        sql = "SELECT * FROM docentes;"
-        with CursorPool() as cursor:
-            cursor.execute(sql)
-            result = cursor.fetchall()
-            docentes = []
-
-            for fila in result:
-                docente = Docente(
-                    id=fila[0],
-                    materia=fila[1],
-                    usuario=Usuario(id=fila[2])
+                usuario = Usuario(
+                    nombre=fila["nombre"],
+                    apellido=fila["apellido"],
+                    fecha_nacimiento=fila["fecha_nacimiento"],
+                    cedula=fila["cedula"],
+                    genero=fila["genero"],
+                    direccion=fila["direccion"],
+                    telefono=fila["telefono"],
+                    email=fila["email"],
+                    foto_perfil=fila["foto_perfil"],
+                    fecha_creacion=fila["fecha_creacion"]
                 )
-                docentes.append(docente)
+                return DocenteData(docente=docente, usuario=usuario)
 
-            return docentes
-
-    @classmethod
-    def crear_docente(cls, docente: Docente):
-        if docente.usuario.id is not None:
-            sql = "INSERT INTO docentes (materia, id_usuario) VALUES (%s, %s);"
-            with CursorPool() as cursor:
-                cursor.execute(sql, (docente.materia, docente.usuario.id))
-                return cursor.rowcount
-        else:
-            return None
 
     @classmethod
-    def actualizar_docente(cls, docente: Docente):
-        sql = "UPDATE docentes SET materia = %s WHERE id_usuario = %s"
-        with CursorPool() as cursor:
-            cursor.execute(sql, (docente.materia, docente.id))
-            return cursor.rowcount
+    async def obtener_docentes_all(cls):
+        sql = """
+        SELECT d.id, d.profesion, d.especialidad, d.fecha_contratacion, d.observaciones,d.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+        FROM docentes d
+        INNER JOIN usuarios u ON u.id = d.usuario_id;
+        """
+        lista_docentes: list[DocenteData] = []
 
+        async with Conexion() as conn:
+            res = await conn.fetch(sql)
+            print("resilta", res)
+            for fila in res:
+                docente = DocenteData(
+                    id=fila["id"],
+                    profesion=fila["profesion"],
+                    especialidad=fila["especialidad"],
+                    fecha_contratacion=fila["fecha_contratacion"],
+                    observaciones=fila["observaciones"],
+                    usuario_id=fila["usuario_id"]
+                )
+                usuario = Usuario(
+                    nombre=fila["nombre"],
+                    apellido=fila["apellido"],
+                    fecha_nacimiento=fila["fecha_nacimiento"],
+                    cedula=fila["cedula"],
+                    genero=fila["genero"],
+                    direccion=fila["direccion"],
+                    telefono=fila["telefono"],
+                    email=fila["email"],
+                    foto_perfil=fila["foto_perfil"],
+                    fecha_creacion=fila["fecha_creacion"]
+                )
+                lista_docentes.append(DocenteData(docente=docente, usuario=usuario))
+            return lista_docentes
+
+    @classmethod
+    async def actualizar_docente(cls, data:DocenteData):
+        sql = """UPDATE docentes SET profesion = $1, especialidad = $2, fecha_contratacion = $3, observaciones = $4 
+                WHERE id = $5;"""
+        async with Conexion() as conn:
+            async with conn.transaction():
+                #Actualizando usuario
+                data.usuario.id = data.docente.usuario_id
+                await UsuarioService.actualizar_usuario_(data.usuario, conn)
+
+                await conn.execute(sql, data.docente.profesion, data.docente.especialidad, data.docente.fecha_contratacion, data.docente.observaciones, data.docente.id)
+                return True
+        
+        return False

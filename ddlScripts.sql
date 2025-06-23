@@ -116,6 +116,18 @@ CREATE TABLE horarios (
     CONSTRAINT chk_horarios CHECK (hora_fin > hora_inicio)
 );
 
+-- ========== HISTORIAL_ACADEMICO (OPTIMIZADO) ==========
+CREATE TABLE historial_academico (
+    id SERIAL PRIMARY KEY,
+    estudiante_id INTEGER NOT NULL REFERENCES estudiantes(id) ON DELETE CASCADE,
+    paralelo_id INTEGER NOT NULL REFERENCES paralelos(id),
+    estado D_ESTADO_ACADEMICO DEFAULT 'CURSANDO', -- 'APROBADO', 'REPROBADO', 'RETIRADO'
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    nota_final DECIMAL(3,1) CHECK (nota_final BETWEEN 0 AND 100),
+    observaciones TEXT,
+    UNIQUE (estudiante_id, paralelo_id)
+);
+
 
 -- ========== INSCRIPCIONES ==========
 CREATE TABLE inscripciones (
@@ -126,6 +138,7 @@ CREATE TABLE inscripciones (
     estado D_ESTADO DEFAULT 'ACTIVO',
     UNIQUE (estudiante_id, paralelo_id)
 );
+
 
 -- ========== ASISTENCIAS GENERALES ==========
 CREATE TABLE asistencias (
@@ -172,7 +185,50 @@ CREATE TABLE rostros (
     UNIQUE (usuario_id)
 );
 
-DROP TABLE rostros;
+-- ========== TIPOS_EVALUACION ==========
+CREATE TABLE tipos_evaluacion (
+    id SERIAL PRIMARY KEY,
+    nombre D_TEXT50 NOT NULL, -- 'Examen Parcial', 'Trabajo Práctico', etc.
+    peso DECIMAL(3,2) CHECK (peso > 0 AND peso <= 1) -- Ponderación en la nota final
+);
+
+-- ========== CALIFICACIONES ==========
+CREATE TABLE calificaciones (
+    id SERIAL PRIMARY KEY,
+    historial_id INTEGER NOT NULL REFERENCES historial_academico(id) ON DELETE CASCADE,
+    tipo_evaluacion_id INTEGER NOT NULL REFERENCES tipos_evaluacion(id),
+    nota DECIMAL(3,1) CHECK (nota BETWEEN 0 AND 100),
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    docente_id INTEGER NOT NULL REFERENCES docentes(id),
+    comentario TEXT
+);
+
+
+-- ========== ACTIVIDADES ==========
+CREATE TABLE actividades (
+    id SERIAL PRIMARY KEY,
+    paralelo_id INTEGER NOT NULL REFERENCES paralelos(id) ON DELETE CASCADE,
+    docente_id INTEGER NOT NULL REFERENCES docentes(id),
+    titulo D_TEXT100 NOT NULL,
+    descripcion TEXT,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_entrega TIMESTAMP NOT NULL,
+    tipo_actividad D_TIPO_ACTIVIDAD NOT NULL, -- 'TAREA', 'PROYECTO', 'EXPOSICION'
+    archivo_adjunto TEXT -- Ruta del archivo si aplica
+);
+
+-- ========== ENTREGAS_ESTUDIANTES ==========
+CREATE TABLE entregas_estudiantes (
+    id SERIAL PRIMARY KEY,
+    actividad_id INTEGER NOT NULL REFERENCES actividades(id) ON DELETE CASCADE,
+    estudiante_id INTEGER NOT NULL REFERENCES estudiantes(id) ON DELETE CASCADE,
+    fecha_entrega TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    archivo_adjunto TEXT,
+    estado D_ESTADO_ENTREGA DEFAULT 'ENTREGADO', -- 'CALIFICADO', 'PENDIENTE'
+    calificacion_id INTEGER REFERENCES calificaciones(id), -- Relación opcional
+    comentario_docente TEXT
+);
+
 
 -- ========== LOG DE ACCESOS =========
 CREATE TABLE log_accesos (
