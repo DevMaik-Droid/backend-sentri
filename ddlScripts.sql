@@ -104,6 +104,7 @@ CREATE TABLE paralelos (
     UNIQUE (materia_id, nombre, gestion_id)
 );
 
+
 -- ========== HORARIOS ==========
 CREATE TABLE horarios (
     id SERIAL PRIMARY KEY,

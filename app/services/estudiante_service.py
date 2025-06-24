@@ -71,7 +71,6 @@ class EstudianteService:
                 estudiante = Estudiante(
                     id=fila["id"],
                     codigo=fila["codigo"],
-                    nivel=fila["nivel"],
                     usuario_id=fila["usuario_id"]
                 )
                 usuario = Usuario(
@@ -86,9 +85,13 @@ class EstudianteService:
                     foto_perfil=fila["foto_perfil"],
                     fecha_creacion=fila["fecha_creacion"]
                 )
-                return EstudianteCreate(estudiante=estudiante, usuario=usuario)
+                nivel = Niveles(
+                    nombre=fila["nivel"]
+                )
+                return EstudianteCreate(estudiante=estudiante, usuario=usuario, niveles=nivel)
             
-            return None    
+            return None
+     
     
     @classmethod
     async def obtener_estudiantes_all(cls):

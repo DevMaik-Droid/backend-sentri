@@ -24,5 +24,5 @@ class Inscripcion(BaseModel):
 
 class EstudianteCreate(BaseModel):
     usuario: Usuario
-    estudiante: Estudiante
+    estudiante: Optional[Estudiante] = None
     niveles : Optional[Niveles] = None

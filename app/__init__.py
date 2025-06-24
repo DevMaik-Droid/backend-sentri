@@ -16,12 +16,12 @@ from .services.face_service import FaceService
 
 def create_app():
 
-    # @asynccontextmanager
-    # async def lifespan(app: FastAPI):
-    #     app.state.rostros_cache = await FaceService.obtener_rostros()
-    #     yield
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        app.state.rostros_cache = await FaceService.obtener_rostros()
+        yield
 
-    app = FastAPI()
+    app = FastAPI( lifespan=lifespan)
     # Configurar CORS
     app.add_middleware(
         CORSMiddleware,
