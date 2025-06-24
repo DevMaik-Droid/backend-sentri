@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from fastapi import UploadFile
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
@@ -18,6 +18,7 @@ class Usuario(BaseModel):
     estado: Optional[str] = None
     rol_id: Optional[int] = Field(None, gt=0)
     rol: Optional[str] = None
+    fecha_creacion: Optional[datetime] = None
 
 
 

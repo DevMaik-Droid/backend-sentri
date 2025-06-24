@@ -6,37 +6,58 @@ router = APIRouter()
 service = GeneralService()
 @router.get('/niveles')
 async def niveles():
-    niveles = await service.obtener_niveles()
+    try:
+        niveles = await service.obtener_niveles()
 
-    niveles = [dict(nivel) for nivel in niveles]
+        if not niveles:
+            return JSONResponse(status_code=404,content={"result":"error", "message":"Niveles no encontrados"})
+        
+        return {"result":"ok", "message":"Niveles obtenidos","data": niveles}
 
-    return JSONResponse(status_code=200,content={"result":"ok", "message":"Niveles obtenidos","data": niveles})
+    except Exception as e:
+        return JSONResponse(status_code=500,content={"result":"error", "message":"error del servidor", "error": str(e)})
 
 
 @router.get('/materias')
 async def materias():
-    materias = await service.obtener_materias()
+    try:
+        materias = await service.obtener_materias()
 
-    json_materias = [dict(materia) for materia in materias]
+        if not materias:
+            return JSONResponse(status_code=404,content={"result":"error", "message":"Materias no encontradas"})
+        
+        return {"result":"ok", "message":"Materias obtenidas","data": materias}
 
-    return JSONResponse(status_code=200,content={"result":"ok", "message":"Materias obtenidas","data": json_materias})
+    except Exception as e:
+        return JSONResponse(status_code=500,content={"result":"error", "message":"error del servidor", "error": str(e)})
 
 
 @router.get('/aulas')
 async def aulas():
-    aulas = await service.obtener_aulas()
+    try:
+        aulas = await service.obtener_aulas()
 
-    json_aulas = [dict(aula) for aula in aulas]
+        if not aulas:
+            return JSONResponse(status_code=404,content={"result":"error", "message":"Aulas no encontradas"})
+        
+        return {"result":"ok", "message":"Aulas obtenidas","data": aulas}
 
-    return JSONResponse(status_code=200,content={"result":"ok", "message":"Aulas obtenidas","data": json_aulas})
+    except Exception as e:
+        return JSONResponse(status_code=500,content={"result":"error", "message":"error del servidor", "error": str(e)})
 
 @router.get('/paralelos')
 async def paralelos():
-    paralelos = await service.obtener_paralelos()
+    try:
+        paralelos = await service.obtener_paralelos()
 
-    json_paralelos = [dict(paralelo) for paralelo in paralelos]
+        if not paralelos:
+            return JSONResponse(status_code=404,content={"result":"error", "message":"Paralelos no encontrados"})
+        
+        return {"result":"ok", "message":"Paralelos obtenidos","data": paralelos}
 
-    return JSONResponse(status_code=200,content={"result":"ok", "message":"Paralelos obtenidos","data": json_paralelos})
+    except Exception as e:
+        return JSONResponse(status_code=500,content={"result":"error", "message":"error del servidor", "error": str(e)})
+    
 
 @router.post('/paralelo/registrar')
 async def registrar(request : Request):
@@ -45,9 +66,9 @@ async def registrar(request : Request):
         paralelos = await request.json()
 
         if await service.crear_paralelos(paralelos):
-            return JSONResponse(status_code=200,content={"result":"ok", "message":"Paralelos registrados"})
+            return JSONResponse(status_code=201,content={"result":"ok", "message":"Paralelos registrados"})
         else:
-            return JSONResponse(status_code=400,content={"result":"error", "message":"Paralelos no registrados"})
+            return JSONResponse(status_code=404,content={"result":"error", "message":"Paralelos no registrados"})
     except Exception as e:
         print(e)
         return JSONResponse(status_code=500,content={"reult":"error", "message": "error del servidor", "error": str(e)})
@@ -62,7 +83,7 @@ async def registrar(request : Request):
         if registrado:
             return JSONResponse(status_code=200,content={"result":"ok", "message":"Horarios registrados"})
         else:
-            return JSONResponse(status_code=400,content={"result":"error", "message":"Horarios no registrados"})
+            return JSONResponse(status_code=404,content={"result":"error", "message":"Horarios no registrados"})
         
     except Exception as e:
         return JSONResponse(status_code=500,content={"result":"error", "message": "error del servidor", "error": error})

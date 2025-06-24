@@ -1,6 +1,6 @@
 from ..models.usuario import Usuario
 from ..database.conexion import Conexion
-from ..models.docente import DocenteData
+from ..models.docente import Docente, DocenteData
 from ..services.usuario_service import UsuarioService
 
 class DocenteService:
@@ -18,7 +18,7 @@ class DocenteService:
         return False
 
     @classmethod
-    async def obtener_docente(cls, id):
+    async def obtener_docente(cls, id) -> DocenteData | None:
         sql = """
         SELECT d.id, d.profesion, d.especialidad, d.fecha_contratacion, d.observaciones,d.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
         FROM docentes d
@@ -28,7 +28,7 @@ class DocenteService:
         async with Conexion() as conn:
             fila = await conn.fetchrow(sql, id)
             if fila:
-                docente = DocenteData(
+                docente = Docente(
                     id=fila["id"],
                     profesion=fila["profesion"],
                     especialidad=fila["especialidad"],
@@ -49,6 +49,7 @@ class DocenteService:
                     fecha_creacion=fila["fecha_creacion"]
                 )
                 return DocenteData(docente=docente, usuario=usuario)
+            return None
 
 
     @classmethod
@@ -62,9 +63,8 @@ class DocenteService:
 
         async with Conexion() as conn:
             res = await conn.fetch(sql)
-            print("resilta", res)
             for fila in res:
-                docente = DocenteData(
+                docente = Docente(
                     id=fila["id"],
                     profesion=fila["profesion"],
                     especialidad=fila["especialidad"],
@@ -95,8 +95,9 @@ class DocenteService:
             async with conn.transaction():
                 #Actualizando usuario
                 data.usuario.id = data.docente.usuario_id
-                await UsuarioService.actualizar_usuario_(data.usuario, conn)
-
+                await UsuarioService.actualizar_usuario_all(data.usuario, conn)
+                
+                print(data.docente)
                 await conn.execute(sql, data.docente.profesion, data.docente.especialidad, data.docente.fecha_contratacion, data.docente.observaciones, data.docente.id)
                 return True
         

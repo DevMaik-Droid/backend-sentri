@@ -1,11 +1,12 @@
 
 from datetime import datetime
 from ..models.usuario import Usuario
-from ..models.estudiante import Estudiante, EstudianteCreate, Inscripcion
+from ..models.estudiante import Estudiante, EstudianteCreate, Inscripcion, Niveles
 from ..database.conexion import Conexion
 from ..services.usuario_service import UsuarioService
-
-
+from ..models.general import Aula, Horario, Materia, Paralelo, ParaleloCompleto
+from ..models.docente import Docente
+from ..utils.utils import limpiar_nulls
 class EstudianteService:
     
 
@@ -40,13 +41,28 @@ class EstudianteService:
                 return True
             
         return False
-    
+    @classmethod
+    async def obtener_estudiante_by_usuario(cls, id):
+        sql = "SELECT * FROM estudiantes WHERE usuario_id = $1;"
+        async with Conexion() as conn:
+            fila = await conn.fetchrow(sql, id)
+            if fila:
+                return Estudiante(
+                    id=fila["id"],
+                    codigo=fila["codigo"],
+                    nivel_id=fila["nivel_id"],
+                    usuario_id=fila["usuario_id"]
+                )
+            return None
+
+
     @classmethod
     async def obtener_estudiante(cls, id) -> EstudianteCreate | None:
         sql = """
-        SELECT e.id, e.codigo, e.nivel_id,e.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+        SELECT e.id, e.codigo, e.nivel_id,e.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email,n.nombre as nivel, u.foto_perfil, u.fecha_creacion 
         FROM estudiantes e
         INNER JOIN usuarios u ON u.id = e.usuario_id
+        INNER JOIN niveles n ON n.id = e.nivel_id
         WHERE e.id = $1;
                 """
         async with Conexion() as conn:
@@ -55,7 +71,7 @@ class EstudianteService:
                 estudiante = Estudiante(
                     id=fila["id"],
                     codigo=fila["codigo"],
-                    nivel_id=fila["nivel_id"],
+                    nivel=fila["nivel"],
                     usuario_id=fila["usuario_id"]
                 )
                 usuario = Usuario(
@@ -77,17 +93,15 @@ class EstudianteService:
     @classmethod
     async def obtener_estudiantes_all(cls):
         sql = """
-        SELECT e.id, e.codigo, e.nivel_id, e.usuario_id,
-            u.nombre, u.apellido, u.fecha_nacimiento, u.cedula, u.genero,
-            u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+        SELECT e.id, e.codigo, e.nivel_id, e.usuario_id, n.nombre as nivel, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil,u.estado, u.fecha_creacion 
         FROM estudiantes e
-        INNER JOIN usuarios u ON u.id = e.usuario_id;
+        INNER JOIN usuarios u ON u.id = e.usuario_id
+        INNER JOIN niveles n ON n.id = e.nivel_id;
         """
         lista_estudiantes: list[EstudianteCreate] = []
 
         async with Conexion() as conn:
             res = await conn.fetch(sql)
-            print("resilta", res)
             for fila in res:
                 estudiante = Estudiante(
                     id=fila["id"],
@@ -98,16 +112,20 @@ class EstudianteService:
                 usuario = Usuario(
                     nombre=fila["nombre"],
                     apellido=fila["apellido"],
-                    fecha_nacimiento=fila["fecha_nacimiento"].date() if isinstance(fila["fecha_nacimiento"], datetime) else fila["fecha_nacimiento"],
+                    fecha_nacimiento=fila["fecha_nacimiento"],
                     cedula=fila["cedula"],
                     genero=fila["genero"],
                     direccion=fila["direccion"],
                     telefono=fila["telefono"],
                     email=fila["email"],
+                    estado=fila["estado"],
                     foto_perfil=fila["foto_perfil"],
                     fecha_creacion=fila["fecha_creacion"]
                 )
-                lista_estudiantes.append(EstudianteCreate(estudiante=estudiante, usuario=usuario))
+                nivel = Niveles(
+                    nombre=fila["nivel"]
+                )
+                lista_estudiantes.append(EstudianteCreate(estudiante=estudiante, usuario=usuario, niveles=nivel))
         return lista_estudiantes
 
     @classmethod
@@ -120,4 +138,63 @@ class EstudianteService:
         return False
             
             
-            
+    @classmethod
+    async def obtener_materias_estudiante(cls, estudiante_id):
+        sql = """
+            SELECT 
+            u.nombre as docente_nombre,
+            u.apellido as docente_apellido,
+            m.id AS materia_id,
+            m.nombre AS materia_nombre,
+            m.descripcion,
+            p.id AS paralelo_id,
+            p.nombre AS paralelo_nombre,
+            p.cupos,
+            p.activo,
+            h.dia_semana,
+            h.hora_inicio,
+            h.hora_fin,
+            a.nombre AS aula
+            FROM materias m
+            JOIN paralelos p ON p.materia_id = m.id
+            JOIN horarios h ON h.paralelo_id = p.id
+            JOIN aulas a ON a.id = h.aula_id
+            LEFT JOIN usuarios u ON u.id = p.docente_id
+            LEFT JOIN inscripciones i ON i.paralelo_id = p.id AND i.estudiante_id = $1
+            WHERE m.nivel_id = (
+                SELECT nivel_id FROM estudiantes WHERE id = $1
+            )
+            AND i.id IS NULL
+            ORDER BY m.nombre, p.nombre, h.dia_semana, h.hora_inicio;
+            """
+        paralelos : list[ParaleloCompleto]= []
+        async with Conexion() as conn:
+            filas = await conn.fetch(sql, estudiante_id)
+            for fila in filas:
+                docente = Docente(
+                    nombre=fila["docente_nombre"],
+                    apellido=fila["docente_apellido"]
+                )
+                materia = Materia(
+                    id=fila["materia_id"],
+                    nombre=fila["materia_nombre"],
+                    descripcion=fila["descripcion"]
+                )
+                paralelo = Paralelo(
+                    id=fila["paralelo_id"],
+                    nombre=fila["paralelo_nombre"],
+                    cupos=fila["cupos"],
+                    activo=fila["activo"]
+                )
+                horario = Horario(
+                    dia_semana=fila["dia_semana"],
+                    hora_inicio=fila["hora_inicio"],
+                    hora_fin=fila["hora_fin"]
+                )
+                aula = Aula(
+                    nombre=fila["aula"]
+                )
+                paralelos.append(ParaleloCompleto(materia=materia, paralelo=paralelo, horario=horario, aula=aula, docente=docente))
+        
+        return limpiar_nulls(paralelos)
+

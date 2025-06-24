@@ -81,11 +81,46 @@ SELECT u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion,
 
 SELECT * FROM estudiantes;
 
-SELECT e.id, e.codigo, e.nivel_id,e.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+SELECT e.id, e.codigo, e.nivel_id,e.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email,n.nombre as nivel, u.foto_perfil, u.fecha_creacion 
         FROM estudiantes e
-        INNER JOIN usuarios u ON u.id = e.usuario_id;
+        INNER JOIN usuarios u ON u.id = e.usuario_id
+        INNER JOIN niveles n ON n.id = u.rol_id;
     
 SELECT * FROM paralelos;
 
 SELECT * FROM materias;
 
+SELECT d.id, d.profesion, d.especialidad, d.fecha_contratacion, d.observaciones,d.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil, u.fecha_creacion 
+        FROM docentes d
+        INNER JOIN usuarios u ON u.id = d.usuario_id;
+
+SELECT DISTINCT m.id, m.nombre, m.descripcion
+        FROM materias m
+        JOIN paralelos p ON p.materia_id = m.id
+        LEFT JOIN inscripciones i ON i.paralelo_id = p.id AND i.estudiante_id = 6
+        WHERE m.nivel_id = (
+            SELECT nivel_id FROM estudiantes WHERE id = 6
+        ) AND i.id IS NULL;
+
+SELECT 
+    m.id AS materia_id,
+    m.nombre AS materia_nombre,
+    m.descripcion,
+    p.id AS paralelo_id,
+    p.nombre AS paralelo_nombre,
+    p.cupos,
+    p.activo,
+    h.dia_semana,
+    h.hora_inicio,
+    h.hora_fin,
+    a.nombre AS aula
+FROM materias m
+JOIN paralelos p ON p.materia_id = m.id
+JOIN horarios h ON h.paralelo_id = p.id
+JOIN aulas a ON a.id = h.aula_id
+LEFT JOIN inscripciones i ON i.paralelo_id = p.id AND i.estudiante_id = $1
+WHERE m.nivel_id = (
+    SELECT nivel_id FROM estudiantes WHERE id = $1
+)
+AND i.id IS NULL
+ORDER BY m.nombre, p.nombre, h.dia_semana, h.hora_inicio;

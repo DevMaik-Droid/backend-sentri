@@ -9,9 +9,11 @@ class Estudiante(BaseModel):
     nivel_id : Optional[int] = None
     usuario_id: Optional[int] = None
 
-class EstudianteCreate(BaseModel):
-    usuario: Usuario
-    estudiante: Estudiante
+class Niveles(BaseModel):
+    id: Optional[int] = None
+    nombre: Optional[str] = Field(None, min_length=3)
+    descripcion: Optional[str] = Field(None, min_length=3)
+
 
 class Inscripcion(BaseModel):
     id: Optional[int] = None
@@ -20,4 +22,7 @@ class Inscripcion(BaseModel):
     fecha_inscripcion: Optional[date] = None
     estado: Optional[str] = Field(None, min_length=3)
 
-    
+class EstudianteCreate(BaseModel):
+    usuario: Usuario
+    estudiante: Estudiante
+    niveles : Optional[Niveles] = None

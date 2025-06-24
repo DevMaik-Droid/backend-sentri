@@ -15,6 +15,8 @@ async def registrar(request : DocenteData):
             return JSONResponse(status_code=400,content={"result":"error", "message":"Docente no registrado"})
     except Exception as e:
         return JSONResponse(status_code=500,content={"error": str(e)})
+    
+    
 @router.put('/actualizar')
 async def actualizar(request : DocenteData):
 
@@ -22,19 +24,38 @@ async def actualizar(request : DocenteData):
         return JSONResponse(status_code=200,content={"result":"ok", "message":"Docente actualizado"})
     else:
         return JSONResponse(status_code=400,content={"result":"error", "message":"Docente no actualizado"})
+    
 
-@router.get('/obtener/{id}')
-async def obtener(id: int):
-    docente = await service.obtener_docente(id)
-    if docente is None:
-        return JSONResponse(status_code=404,content={"result":"error", "message":"Docente no encontrado"})
-    else:
-        return JSONResponse(status_code=200,content=docente)
+
 @router.get('/obtener/todos')
 async def obtener_todos():
 
-    docentes : list[DocenteData] = await service.obtener_docentes_all()
-    if docentes:
+    try:
+        docentes : list[DocenteData] = await service.obtener_docentes_all()
+        if not docentes:
+            return JSONResponse(status_code=404,content={"result":"error", "message":"Docentes no encontrados"})
+        
         return {"result":"ok", "message":"Docentes obtenidos","data": docentes}
-    else:
-        return {"result":"error", "message":"Docentes no encontrados"}
+    
+    except Exception as e:
+        return JSONResponse(status_code=500,content={"result":"error", "message":"error del servidor", "error": str(e)})
+        
+    
+
+@router.get('/obtener/{id}')
+async def obtener_por_id(id: int):
+
+    try:
+        docente : DocenteData = await service.obtener_docente(id)
+        if not docente:
+            return JSONResponse(status_code=404,content={"result":"error", "message":"Docente no encontrado"})
+        
+        return {"result":"ok", "message":"Docente obtenido","data": docente}
+    
+    except Exception as e:
+        return JSONResponse(status_code=500,content={"result":"error", "message":"error del servidor", "error": str(e)})
+    
+        
+
+        
+        
