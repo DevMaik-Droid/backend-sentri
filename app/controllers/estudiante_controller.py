@@ -5,13 +5,13 @@ import base64, os, cv2, numpy as np
 from fastapi import APIRouter
 
 from ..models.general import ParaleloCompleto
-from ..models.estudiante import Estudiante, EstudianteCreate, Inscripcion
+from ..models.estudiante import Estudiante, EstudianteCompleto, Inscripcion
 from ..services.estudiante_service import EstudianteService
 
 router = APIRouter()
 service = EstudianteService()
 @router.post('/registrar')
-async def registrar(request : EstudianteCreate):
+async def registrar(request : EstudianteCompleto):
     if (await service.crear_estudiante(request)):
         return {"result":"ok", "message":"Estudiante registrado"}
     else:
@@ -19,7 +19,7 @@ async def registrar(request : EstudianteCreate):
 
 
 @router.post('/registrar/varios')
-async def registrar_varios(estudiantes : list[EstudianteCreate]):
+async def registrar_varios(estudiantes : list[EstudianteCompleto]):
 
     if (await service.crear_estudiantes(estudiantes)):
 
@@ -32,7 +32,7 @@ async def registrar_varios(estudiantes : list[EstudianteCreate]):
 async def obtener_todos():
 
     try:
-        estudiantes : list[EstudianteCreate] = await service.obtener_estudiantes_all()
+        estudiantes : list[EstudianteCompleto] = await service.obtener_estudiantes_all()
 
         if not estudiantes:
             return JSONResponse(status_code=404,content={"result":"error", "message":"Estudiantes no encontrados"})
@@ -47,7 +47,7 @@ async def obtener_todos():
 
 @router.get('/obtener/{id}')
 async def obtener_id(id : int):
-    estudiante : EstudianteCreate = await service.obtener_estudiante(id)
+    estudiante : EstudianteCompleto = await service.obtener_estudiante(id)
 
     if estudiante:
         return {"result":"ok", "message":"Estudiante obtenido","data": estudiante}
@@ -64,7 +64,7 @@ async def obtener_id(id : int):
         return JSONResponse(status_code=404,content={"result":"error", "message":"Estudiante no encontrado"})
     
 @router.put('/actualizar')
-async def actualizar(request : EstudianteCreate):
+async def actualizar(request : EstudianteCompleto):
 
     if (await service.actualizar_estudiante(request)):
         return {"result":"ok", "message":"Estudiante actualizado"}

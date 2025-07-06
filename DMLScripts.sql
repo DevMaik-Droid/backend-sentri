@@ -102,6 +102,7 @@ SELECT DISTINCT m.id, m.nombre, m.descripcion
             SELECT nivel_id FROM estudiantes WHERE id = 6
         ) AND i.id IS NULL;
 
+SELECT * from estudiantes;
 SELECT 
     m.id AS materia_id,
     m.nombre AS materia_nombre,
@@ -118,9 +119,16 @@ FROM materias m
 JOIN paralelos p ON p.materia_id = m.id
 JOIN horarios h ON h.paralelo_id = p.id
 JOIN aulas a ON a.id = h.aula_id
-LEFT JOIN inscripciones i ON i.paralelo_id = p.id AND i.estudiante_id = 6
+LEFT JOIN inscripciones i ON i.paralelo_id = p.id AND i.estudiante_id = 2
 WHERE m.nivel_id = (
-    SELECT nivel_id FROM estudiantes WHERE id =6
+    SELECT nivel_id FROM estudiantes WHERE id =2
 )
 AND i.id IS NULL
 ORDER BY m.nombre, p.nombre, h.dia_semana, h.hora_inicio;
+
+SELECT * from paralelos;
+
+SELECT * from usuarios;
+SELECT * from rostros;
+
+DELETE FROM rostros;

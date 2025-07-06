@@ -1,7 +1,7 @@
 
 from datetime import datetime
-from ..models.usuario import Usuario
-from ..models.estudiante import Estudiante, EstudianteCreate, Inscripcion, Niveles
+from ..models.usuario import Usuario, UsuarioCompleto
+from ..models.estudiante import Estudiante, EstudianteCompleto, Inscripcion, Niveles
 from ..database.conexion import Conexion
 from ..services.usuario_service import UsuarioService
 from ..models.general import Aula, Horario, Materia, Paralelo, ParaleloCompleto
@@ -11,13 +11,13 @@ class EstudianteService:
     
 
     @classmethod
-    async def crear_estudiantes(cls, est : list[EstudianteCreate]):
+    async def crear_estudiantes(cls, est : list[EstudianteCompleto]):
         for estudiante in est:
             await cls.crear_estudiante(estudiante)
         return True
 
     @classmethod
-    async def crear_estudiante(cls, est:EstudianteCreate):
+    async def crear_estudiante(cls, est:EstudianteCompleto):
 
         sql = "INSERT INTO estudiantes (codigo, nivel_id ,usuario_id) VALUES ($1, $2, $3);"
         async with Conexion() as conn:
@@ -30,12 +30,12 @@ class EstudianteService:
         return False
     
     @classmethod
-    async def actualizar_estudiante(cls, est:EstudianteCreate):
+    async def actualizar_estudiante(cls, est:EstudianteCompleto):
         sql = "UPDATE estudiantes SET codigo = $1, nivel_id = $2 WHERE id = $3;"
         async with Conexion() as conn:
             async with conn.transaction():
                 #Actualizando usuario
-                est.usuario.id = est.estudiante.usuario_id
+                est.usuario.usuario.id = est.estudiante.usuario_id
                 await UsuarioService.actualizar_usuario_(est.usuario, conn)
                 await conn.execute(sql, est.estudiante.codigo, est.estudiante.nivel_id, est.estudiante.id)
                 return True
@@ -48,16 +48,13 @@ class EstudianteService:
             fila = await conn.fetchrow(sql, id)
             if fila:
                 return Estudiante(
-                    id=fila["id"],
-                    codigo=fila["codigo"],
-                    nivel_id=fila["nivel_id"],
-                    usuario_id=fila["usuario_id"]
+                    **fila
                 )
             return None
 
 
     @classmethod
-    async def obtener_estudiante(cls, id) -> EstudianteCreate | None:
+    async def obtener_estudiante(cls, id) -> EstudianteCompleto | None:
         sql = """
         SELECT e.id, e.codigo, e.nivel_id,e.usuario_id, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email,n.nombre as nivel, u.foto_perfil, u.fecha_creacion 
         FROM estudiantes e
@@ -88,7 +85,7 @@ class EstudianteService:
                 nivel = Niveles(
                     nombre=fila["nivel"]
                 )
-                return EstudianteCreate(estudiante=estudiante, usuario=usuario, niveles=nivel)
+                return EstudianteCompleto(estudiante=estudiante, usuario=usuario, niveles=nivel)
             
             return None
      
@@ -96,12 +93,13 @@ class EstudianteService:
     @classmethod
     async def obtener_estudiantes_all(cls):
         sql = """
-        SELECT e.id, e.codigo, e.nivel_id, e.usuario_id, n.nombre as nivel, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil,u.estado, u.fecha_creacion 
+        SELECT e.id, e.codigo, e.nivel_id, e.usuario_id, n.nombre as nivel, u.nombre, u.apellido,u.fecha_nacimiento, u.cedula, u.genero, u.direccion, u.telefono, u.email, u.foto_perfil,u.estado,r.image_path, u.fecha_creacion 
         FROM estudiantes e
         INNER JOIN usuarios u ON u.id = e.usuario_id
-        INNER JOIN niveles n ON n.id = e.nivel_id;
+        INNER JOIN niveles n ON n.id = e.nivel_id
+        LEFT JOIN rostros r ON r.usuario_id = e.usuario_id;
         """
-        lista_estudiantes: list[EstudianteCreate] = []
+        lista_estudiantes: list[EstudianteCompleto] = []
 
         async with Conexion() as conn:
             res = await conn.fetch(sql)
@@ -128,7 +126,9 @@ class EstudianteService:
                 nivel = Niveles(
                     nombre=fila["nivel"]
                 )
-                lista_estudiantes.append(EstudianteCreate(estudiante=estudiante, usuario=usuario, niveles=nivel))
+
+                usuario_completo = UsuarioCompleto(usuario=usuario)
+                lista_estudiantes.append(EstudianteCompleto(estudiante=estudiante, user=usuario_completo, niveles=nivel))
         return lista_estudiantes
 
     @classmethod

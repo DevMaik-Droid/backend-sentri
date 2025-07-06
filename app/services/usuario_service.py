@@ -1,8 +1,8 @@
 from ..database.conexion import Conexion
 from asyncpg import Connection
-from ..models.usuario import Usuario
+from ..models.usuario import Rol, Rostro, Usuario, UsuarioCompleto
 from passlib.context import CryptContext
-
+from ..utils.utils import limpiar_nulls
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class UsuarioService:
@@ -20,7 +20,7 @@ class UsuarioService:
             return await cls.crear_usuario(usuario, conn)
 
     @classmethod
-    async def authenticate(cls, username):
+    async def authenticate(cls, username) -> UsuarioCompleto | None:
 
         if '@' in username:
             tipo_autenticacion = "u.email = $1"
@@ -28,24 +28,33 @@ class UsuarioService:
             tipo_autenticacion = "u.cedula = $1"
 
         sql = f"""
-            SELECT u.id, u.nombre, u.apellido, u.email, u.password_hash, u.foto_perfil, upper(r.nombre) AS rol FROM 
+            SELECT u.id, u.nombre, u.apellido, u.email, u.password_hash, u.foto_perfil, upper(r.nombre) AS rol, ro.image_path FROM 
             usuarios u
             INNER JOIN roles r ON u.rol_id = r.id
+            LEFT JOIN rostros ro ON ro.usuario_id = u.id
             WHERE {tipo_autenticacion};
             """
         async with Conexion() as conn:
             user = await conn.fetchrow(sql, username)
             if user:
-                return Usuario(**user)
+                usuario = Usuario(
+                    id=user["id"],
+                    nombre=user["nombre"],
+                    apellido=user["apellido"],
+                    email=user["email"],
+                    password_hash=user["password_hash"],
+                    foto_perfil=user["foto_perfil"]
+                )
+                roles = Rol(
+                    nombre=user["rol"],
+                )
+                rostro = Rostro(
+                    image_path=user["image_path"]
+                )
+                return UsuarioCompleto(usuario=usuario, rol=roles, rostro=rostro)
+
             return None
-    
-    # @classmethod
-    # def obtener_usuarios(cls):
-    #     sql = "SELECT * FROM usuarios"
-    #     with CursorPool() as cursor:
-    #         cursor.execute(sql)
-    #         usuarios = cursor.fetchall()
-    #         return usuarios
+
         
     @classmethod
     async def actualizar_usuario_all(self, usuario: Usuario, conn : Connection = None):

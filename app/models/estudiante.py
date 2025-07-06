@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Field
-from .usuario import Usuario
+from .usuario import Usuario, UsuarioCompleto
 from datetime import date
 
 class Estudiante(BaseModel):
@@ -22,7 +22,9 @@ class Inscripcion(BaseModel):
     fecha_inscripcion: Optional[date] = None
     estado: Optional[str] = Field(None, min_length=3)
 
-class EstudianteCreate(BaseModel):
-    usuario: Usuario
+class EstudianteCompleto(BaseModel):
+    user: Optional[UsuarioCompleto] = None
     estudiante: Optional[Estudiante] = None
     niveles : Optional[Niveles] = None
+    
+

@@ -17,14 +17,21 @@ class Usuario(BaseModel):
     foto_perfil: Optional[UploadFile] | Optional[str] = None
     estado: Optional[str] = None
     rol_id: Optional[int] = Field(None, gt=0)
-    rol: Optional[str] = None
     fecha_creacion: Optional[datetime] = None
 
-
-
-class RostroUser(BaseModel):
+class Rol(BaseModel):
     id: Optional[int] = Field(None, gt=0)
-    usuario_id: int = Field(..., gt=0)
-    foto : UploadFile = Field(..., min_length=3)
-    emmbedding: Optional[str] = Field(None, min_length=3)
+    nombre: Optional[str] = Field(None, min_length=3)
+    descripcion: Optional[str] = Field(None, min_length=3)
+
+class Rostro(BaseModel):
+    id: Optional[int] = Field(None, gt=0)
+    usuario_id: Optional[int] = Field(None, gt=0)
+    foto : Optional[str] = Field(None, min_length=3)
+    emmbedding: Optional[list] = None
     image_path: Optional[str] = None
+
+class UsuarioCompleto(BaseModel):
+    usuario: Usuario
+    rol : Optional[Rol] = None
+    rostro: Optional[Rostro] = None

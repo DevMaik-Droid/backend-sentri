@@ -1,23 +1,28 @@
 from ..database.conexion import Conexion
-from ..models.usuario import RostroUser
+from ..models.usuario import Rostro
 class FaceService:
 
 
     @classmethod
-    async def registrar_rostro(cls, rostro : RostroUser, app):
+    async def registrar_rostro(cls, request:Rostro):
         sql = "INSERT INTO rostros (usuario_id,emmbedding, image_path) VALUES ($1, $2, $3);"
         async with Conexion() as conn:
-            await conn.execute(sql,rostro.usuario_id, rostro.emmbedding, rostro.image_path)
-            app.state.rostros_cache.append((rostro.usuario_id, rostro.emmbedding))
+            await conn.execute(sql,request.usuario_id, request.emmbedding, request.image_path)
             return True
 
 
     @classmethod
     async def obtener_rostros(cls):
         sql = """
-                SELECT u.id, u.nombre, u.apellido, r.emmbedding
-                FROM usuarios u
-                JOIN rostros r ON u.id = r.usuario_id;
+                SELECT usuario_id, emmbedding FROM rostros;
                 """
         async with Conexion() as conn:
-            return await conn.fetch(sql)
+            rostros : list[Rostro] = []
+            filas = await conn.fetch(sql)
+            for fila in filas:
+                rostro : Rostro = Rostro(
+                    usuario_id=fila["usuario_id"],
+                    emmbedding=fila["emmbedding"]
+                )
+                rostros.append(rostro)
+            return rostros
